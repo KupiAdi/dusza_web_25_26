@@ -77,21 +77,8 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
 
   async function generateCardImage(cardName: string): Promise<string> {
     try {
-      const response = await fetch('http://localhost:3001/api/generate-image', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: cardName,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Kép generálása sikertelen')
-      }
-
-      const data = await response.json()
+      const { api } = await import('../services/api')
+      const data = await api.generateImage(cardName)
       return data.path // pl: "/images/Orc%20warrior.jpg"
     } catch (error) {
       console.error('Hiba a kép generálásakor:', error)

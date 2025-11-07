@@ -347,19 +347,6 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
         </form>
       </div>
 
-      <div className="panel-block">
-        <h3>Jatekosok</h3>
-        <ul className="player-list">
-          {sortedPlayers.map((player) => (
-            <li key={player.id}>
-              <button type="button" onClick={() => setSelectedPlayerId(player.id)}>
-                {player.name} ({environments.find((env) => env.id === player.environmentId)?.name ?? 'Ismeretlen kornyezet'})
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-
       {selectedPlayer && playerEnvironment && (
         <div className="panel-block">
           <h3>Aktiv jatekos: {selectedPlayer.name}</h3>

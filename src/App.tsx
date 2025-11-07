@@ -2,16 +2,20 @@ import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import { EnvironmentEditor } from './components/EnvironmentEditor'
 import { PlayerHub } from './components/PlayerHub'
+import { Auth } from './components/Auth'
 import { GameDataProvider, useGameData } from './state/GameDataContext'
+import { AuthProvider, useAuth } from './state/AuthContext'
 import type { GameEnvironment } from './types'
 import { generateId } from './utils/id'
 
 type TabKey = 'player' | 'master'
 
 function AppShell() {
+  const { user, logout } = useAuth()
   const {
     environments,
     players,
+    isLoading,
     addEnvironment,
     updateEnvironment,
     removeEnvironment,
@@ -44,7 +48,7 @@ function AppShell() {
     setTimeout(() => setStatusMessage(null), 3000)
   }
 
-  function handleCreateEnvironment(event: React.FormEvent<HTMLFormElement>) {
+  async function handleCreateEnvironment(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const trimmed = newEnvironmentName.trim()
     if (!trimmed) {
@@ -68,22 +72,44 @@ function AppShell() {
       dungeons: [],
     }
 
-    addEnvironment(environment)
-    setSelectedEnvironmentId(environment.id)
-    setNewEnvironmentName('')
-    notify('Uj jatekkornyezet hozzaadva.')
+    try {
+      await addEnvironment(environment)
+      setSelectedEnvironmentId(environment.id)
+      setNewEnvironmentName('')
+      notify('Uj jatekkornyezet hozzaadva.')
+    } catch (error: any) {
+      notify(error.message || 'Hiba tortent a kornyezet letrehozasa soran', 'error')
+    }
   }
 
-  function handleEnvironmentUpdate(updatedEnvironment: GameEnvironment) {
-    updateEnvironment(updatedEnvironment)
+  async function handleEnvironmentUpdate(updatedEnvironment: GameEnvironment) {
+    try {
+      await updateEnvironment(updatedEnvironment)
+      notify('Kornyezet mentve.')
+    } catch (error: any) {
+      notify(error.message || 'Hiba tortent a kornyezet mentese soran', 'error')
+    }
   }
 
-  function handleEnvironmentRemoval(environmentId: string) {
+  async function handleEnvironmentRemoval(environmentId: string) {
     if (!confirm('Biztosan torlod ezt a jatekkornyezetet?')) {
       return
     }
-    removeEnvironment(environmentId)
-    notify('A kornyezet torolve lett.')
+    try {
+      await removeEnvironment(environmentId)
+      notify('A kornyezet torolve lett.')
+    } catch (error: any) {
+      notify(error.message || 'Hiba tortent a kornyezet torlese soran', 'error')
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="loading-screen">
+        <div className="loading-spinner"></div>
+        <p>Betöltés...</p>
+      </div>
+    )
   }
 
   return (
@@ -93,23 +119,42 @@ function AppShell() {
           <h1>Damareen</h1>
           <p>Gyujtogetos fantasy kartya kaland React alapokon.</p>
         </div>
-        <nav className="tabs">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <span style={{ opacity: 0.9 }}>Üdv, {user?.username}!</span>
           <button
             type="button"
-            className={activeTab === 'player' ? 'active' : ''}
-            onClick={() => setActiveTab('player')}
+            onClick={logout}
+            style={{
+              padding: '0.5rem 1rem',
+              background: 'rgba(255, 255, 255, 0.2)',
+              border: '1px solid rgba(255, 255, 255, 0.4)',
+              borderRadius: '0.5rem',
+              color: 'inherit',
+              cursor: 'pointer',
+              fontWeight: 600,
+            }}
           >
-            Jatekos mod
+            Kijelentkezés
           </button>
-          <button
-            type="button"
-            className={activeTab === 'master' ? 'active' : ''}
-            onClick={() => setActiveTab('master')}
-          >
-            Jatekmester mod
-          </button>
-        </nav>
+        </div>
       </header>
+
+      <nav className="tabs" style={{ margin: '1rem 3rem', width: 'fit-content' }}>
+        <button
+          type="button"
+          className={activeTab === 'player' ? 'active' : ''}
+          onClick={() => setActiveTab('player')}
+        >
+          Jatekos mod
+        </button>
+        <button
+          type="button"
+          className={activeTab === 'master' ? 'active' : ''}
+          onClick={() => setActiveTab('master')}
+        >
+          Jatekmester mod
+        </button>
+      </nav>
 
       {statusMessage && (
         <div className={`feedback feedback--${statusMessage.type} header-feedback`}>
@@ -180,11 +225,34 @@ function AppShell() {
   )
 }
 
-function App() {
+function AppWithAuth() {
+  const { isAuthenticated, isLoading } = useAuth()
+
+  if (isLoading) {
+    return (
+      <div className="loading-screen">
+        <div className="loading-spinner"></div>
+        <p>Betöltés...</p>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return <Auth />
+  }
+
   return (
     <GameDataProvider>
       <AppShell />
     </GameDataProvider>
+  )
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppWithAuth />
+    </AuthProvider>
   )
 }
 

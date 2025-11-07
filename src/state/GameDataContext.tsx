@@ -1,6 +1,6 @@
-import { createContext, useContext, useEffect, useMemo, useReducer } from 'react'
+import { createContext, useContext, useEffect, useMemo, useReducer, useState } from 'react'
 import type { ReactNode } from 'react'
-import { defaultEnvironment } from '../data/defaultEnvironment'
+import { api } from '../services/api'
 import type {
   GameEnvironment,
   PlayerProfile,
@@ -14,14 +14,14 @@ interface GameState {
   players: PlayerProfile[]
 }
 
-const STORAGE_KEY = 'damareen-game-data-v1'
-
 const initialState: GameState = {
-  environments: [defaultEnvironment],
+  environments: [],
   players: [],
 }
 
 type GameAction =
+  | { type: 'set-environments'; payload: GameEnvironment[] }
+  | { type: 'set-players'; payload: PlayerProfile[] }
   | { type: 'add-environment'; payload: GameEnvironment }
   | { type: 'update-environment'; payload: GameEnvironment }
   | { type: 'remove-environment'; payload: string }
@@ -40,6 +40,12 @@ type GameAction =
 
 function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
+    case 'set-environments': {
+      return { ...state, environments: action.payload }
+    }
+    case 'set-players': {
+      return { ...state, players: action.payload }
+    }
     case 'add-environment': {
       const exists = state.environments.some((env) => env.id === action.payload.id)
       const environments = exists
@@ -95,67 +101,121 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 }
 
 interface GameDataContextValue extends GameState {
-  addEnvironment: (environment: GameEnvironment) => void
-  updateEnvironment: (environment: GameEnvironment) => void
-  removeEnvironment: (environmentId: string) => void
-  addPlayer: (player: PlayerProfile) => void
+  isLoading: boolean
+  addEnvironment: (environment: GameEnvironment) => Promise<void>
+  updateEnvironment: (environment: GameEnvironment) => Promise<void>
+  removeEnvironment: (environmentId: string) => Promise<void>
+  addPlayer: (player: PlayerProfile) => Promise<void>
   updatePlayer: (
     playerId: string,
     updates: Partial<Omit<PlayerProfile, 'id' | 'environmentId'>>
-  ) => void
-  removePlayer: (playerId: string) => void
+  ) => Promise<void>
+  removePlayer: (playerId: string) => Promise<void>
+  refreshData: () => Promise<void>
 }
 
 const GameDataContext = createContext<GameDataContextValue | undefined>(undefined)
 
-function loadStateFromStorage(): GameState {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) {
-      return initialState
-    }
-    const parsed = JSON.parse(raw) as GameState
-    if (!parsed.environments.length) {
-      return initialState
-    }
-    return parsed
-  } catch (err) {
-    console.warn('Falling back to initial game state', err)
-    return initialState
-  }
-}
-
 export function GameDataProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(gameReducer, undefined, () => {
-    if (typeof window === 'undefined') {
-      return initialState
+  const [state, dispatch] = useReducer(gameReducer, initialState)
+  const [isLoading, setIsLoading] = useState(true)
+
+  const refreshData = async () => {
+    try {
+      setIsLoading(true)
+      const [envResponse, playerResponse] = await Promise.all([
+        api.getEnvironments(),
+        api.getPlayers(),
+      ])
+      dispatch({ type: 'set-environments', payload: envResponse.environments })
+      dispatch({ type: 'set-players', payload: playerResponse.players })
+    } catch (error) {
+      console.error('Failed to load game data:', error)
+    } finally {
+      setIsLoading(false)
     }
-    return loadStateFromStorage()
-  })
+  }
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      return
+    refreshData()
+  }, [])
+
+  const addEnvironment = async (environment: GameEnvironment) => {
+    try {
+      await api.saveEnvironment(environment)
+      dispatch({ type: 'add-environment', payload: environment })
+    } catch (error) {
+      console.error('Failed to add environment:', error)
+      throw error
     }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-  }, [state])
+  }
+
+  const updateEnvironment = async (environment: GameEnvironment) => {
+    try {
+      await api.saveEnvironment(environment)
+      dispatch({ type: 'update-environment', payload: environment })
+    } catch (error) {
+      console.error('Failed to update environment:', error)
+      throw error
+    }
+  }
+
+  const removeEnvironment = async (environmentId: string) => {
+    try {
+      await api.deleteEnvironment(environmentId)
+      dispatch({ type: 'remove-environment', payload: environmentId })
+    } catch (error) {
+      console.error('Failed to remove environment:', error)
+      throw error
+    }
+  }
+
+  const addPlayer = async (player: PlayerProfile) => {
+    try {
+      await api.createPlayer(player)
+      dispatch({ type: 'add-player', payload: player })
+    } catch (error) {
+      console.error('Failed to add player:', error)
+      throw error
+    }
+  }
+
+  const updatePlayer = async (
+    playerId: string,
+    updates: Partial<Omit<PlayerProfile, 'id' | 'environmentId'>>
+  ) => {
+    try {
+      await api.updatePlayer(playerId, updates)
+      dispatch({ type: 'update-player', payload: { id: playerId, ...updates } })
+    } catch (error) {
+      console.error('Failed to update player:', error)
+      throw error
+    }
+  }
+
+  const removePlayer = async (playerId: string) => {
+    try {
+      await api.deletePlayer(playerId)
+      dispatch({ type: 'remove-player', payload: playerId })
+    } catch (error) {
+      console.error('Failed to remove player:', error)
+      throw error
+    }
+  }
 
   const value = useMemo<GameDataContextValue>(
     () => ({
       ...state,
-      addEnvironment: (environment) =>
-        dispatch({ type: 'add-environment', payload: environment }),
-      updateEnvironment: (environment) =>
-        dispatch({ type: 'update-environment', payload: environment }),
-      removeEnvironment: (environmentId) =>
-        dispatch({ type: 'remove-environment', payload: environmentId }),
-      addPlayer: (player) => dispatch({ type: 'add-player', payload: player }),
-      updatePlayer: (playerId, updates) =>
-        dispatch({ type: 'update-player', payload: { id: playerId, ...updates } }),
-      removePlayer: (playerId) =>
-        dispatch({ type: 'remove-player', payload: playerId }),
+      isLoading,
+      addEnvironment,
+      updateEnvironment,
+      removeEnvironment,
+      addPlayer,
+      updatePlayer,
+      removePlayer,
+      refreshData,
     }),
-    [state]
+    [state, isLoading]
   )
 
   return <GameDataContext.Provider value={value}>{children}</GameDataContext.Provider>

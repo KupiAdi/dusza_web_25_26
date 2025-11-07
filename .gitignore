@@ -25,3 +25,4 @@ public/images/
 *.njsproj
 *.sln
 *.sw?
+.env
