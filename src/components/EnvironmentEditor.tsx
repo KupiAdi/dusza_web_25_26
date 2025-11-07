@@ -21,8 +21,8 @@ const CARD_TYPES = [
 
 interface StandardCardForm {
   name: string
-  damage: number
-  health: number
+  damage: string
+  health: string
   element: WorldCard['element']
 }
 
@@ -46,8 +46,8 @@ interface EnvironmentEditorProps {
 export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProps) {
   const [standardForm, setStandardForm] = useState<StandardCardForm>({
     name: '',
-    damage: 2,
-    health: 2,
+    damage: '2',
+    health: '2',
     element: 'earth',
   })
   const [leaderForm, setLeaderForm] = useState<LeaderCardForm>({
@@ -100,11 +100,25 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
       withFeedback('Ez a kartya nev mar letezik.', 'error')
       return
     }
-    if (standardForm.damage < 2 || standardForm.damage > 100) {
+    if (standardForm.damage === '') {
+      withFeedback('Adj meg egy sebzés értéket.', 'error')
+      return
+    }
+    if (standardForm.health === '') {
+      withFeedback('Adj meg egy életerő értéket.', 'error')
+      return
+    }
+    const damageValue = Number(standardForm.damage)
+    const healthValue = Number(standardForm.health)
+    if (Number.isNaN(damageValue) || Number.isNaN(healthValue)) {
+      withFeedback('Érvényes számot adj meg.', 'error')
+      return
+    }
+    if (damageValue < 2 || damageValue > 100) {
       withFeedback('A sebzes 2 es 100 kozott lehet.', 'error')
       return
     }
-    if (standardForm.health < 1 || standardForm.health > 100) {
+    if (healthValue < 1 || healthValue > 100) {
       withFeedback('Az eletero 1 es 100 kozott lehet.', 'error')
       return
     }
@@ -116,8 +130,8 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
       const newCard: WorldCard = {
         id: generateId('card'),
         name: cardName,
-        damage: standardForm.damage,
-        health: standardForm.health,
+        damage: damageValue,
+        health: healthValue,
         element: standardForm.element,
         kind: 'standard',
         backgroundImage: backgroundImage || undefined,
@@ -129,7 +143,7 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
       })
     })
 
-    setStandardForm({ name: '', damage: 2, health: 2, element: 'earth' })
+    setStandardForm({ name: '', damage: '2', health: '2', element: 'earth' })
     withFeedback('Sikeresen hozzaadtad a kartya listahoz. Kep generalas folyamatban...')
   }
 
@@ -317,7 +331,7 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
               max={100}
               value={standardForm.damage}
               onChange={(event) =>
-                setStandardForm((prev) => ({ ...prev, damage: Number(event.target.value) }))
+                setStandardForm((prev) => ({ ...prev, damage: event.target.value }))
               }
             />
           </label>
@@ -329,7 +343,7 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
               max={100}
               value={standardForm.health}
               onChange={(event) =>
-                setStandardForm((prev) => ({ ...prev, health: Number(event.target.value) }))
+                setStandardForm((prev) => ({ ...prev, health: event.target.value }))
               }
             />
           </label>
