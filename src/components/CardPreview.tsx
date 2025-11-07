@@ -57,6 +57,14 @@ export function CardPreview({
     .filter(Boolean)
     .join(' ')
 
+  const illustrationStyle: CSSProperties = card.backgroundImage
+    ? {
+        backgroundImage: `url(${card.backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }
+    : {}
+
   return (
     <article className={classNames} style={style} data-card-kind={card.kind}>
       <header className="card-preview__header">
@@ -70,9 +78,13 @@ export function CardPreview({
       </header>
 
       <section className="card-preview__body">
-        <div className="card-preview__illustration">
-          <div className="card-preview__shape"></div>
-          <div className="card-preview__shape card-preview__shape--accent"></div>
+        <div className="card-preview__illustration" style={illustrationStyle}>
+          {!card.backgroundImage && (
+            <>
+              <div className="card-preview__shape"></div>
+              <div className="card-preview__shape card-preview__shape--accent"></div>
+            </>
+          )}
         </div>
         <dl className="card-preview__stats">
           <div>

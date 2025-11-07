@@ -15,8 +15,8 @@ const PORT = 3001;
 app.use(cors());
 app.use(express.json());
 
-// Biztosítjuk, hogy az images mappa létezik
-const imagesDir = join(__dirname, 'images');
+// Biztosítjuk, hogy a public/images mappa létezik
+const imagesDir = join(__dirname, '..', 'public', 'images');
 if (!existsSync(imagesDir)) {
   mkdirSync(imagesDir, { recursive: true });
 }

@@ -11,6 +11,7 @@ export const defaultEnvironment: GameEnvironment = {
       health: 5,
       element: 'fire',
       kind: 'standard',
+      backgroundImage: '/images/Aragorn.jpg',
     },
     {
       id: 'galadriel',
@@ -19,6 +20,7 @@ export const defaultEnvironment: GameEnvironment = {
       health: 4,
       element: 'air',
       kind: 'standard',
+      backgroundImage: '/images/Galadriel.jpg',
     },
     {
       id: 'durin',
@@ -27,6 +29,7 @@ export const defaultEnvironment: GameEnvironment = {
       health: 6,
       element: 'earth',
       kind: 'standard',
+      backgroundImage: '/images/Durin.jpg',
     },
     {
       id: 'melian',
@@ -35,6 +38,7 @@ export const defaultEnvironment: GameEnvironment = {
       health: 3,
       element: 'water',
       kind: 'standard',
+      backgroundImage: '/images/Melian.jpg',
     },
     {
       id: 'eldarion',
@@ -43,6 +47,7 @@ export const defaultEnvironment: GameEnvironment = {
       health: 6,
       element: 'earth',
       kind: 'standard',
+      backgroundImage: '/images/Eldarion.jpg',
     },
     {
       id: 'darth-obiw',
@@ -52,6 +57,7 @@ export const defaultEnvironment: GameEnvironment = {
       element: 'fire',
       kind: 'leader',
       sourceCardId: 'melian',
+      backgroundImage: '/images/Darth%20ObiWan.jpg',
     },
   ],
   starterCollection: ['aragorn', 'galadriel', 'melian', 'eldarion'],

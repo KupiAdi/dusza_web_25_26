@@ -11,6 +11,7 @@ export interface WorldCard {
   element: Element
   kind: CardKind
   sourceCardId?: string
+  backgroundImage?: string
 }
 
 export type DungeonType = 'encounter' | 'minor' | 'major'

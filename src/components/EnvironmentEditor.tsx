@@ -75,6 +75,30 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
     setTimeout(() => setFeedback(null), 3000)
   }
 
+  async function generateCardImage(cardName: string): Promise<string> {
+    try {
+      const response = await fetch('http://localhost:3001/api/generate-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: cardName,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Kép generálása sikertelen')
+      }
+
+      const data = await response.json()
+      return data.path // pl: "/images/Orc%20warrior.jpg"
+    } catch (error) {
+      console.error('Hiba a kép generálásakor:', error)
+      return '' // Ha nem sikerült, üres string
+    }
+  }
+
   function handleStandardSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!standardForm.name.trim()) {
@@ -98,21 +122,28 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
       return
     }
 
-    const newCard: WorldCard = {
-      id: generateId('card'),
-      name: standardForm.name.trim(),
-      damage: standardForm.damage,
-      health: standardForm.health,
-      element: standardForm.element,
-      kind: 'standard',
-    }
+    const cardName = standardForm.name.trim()
 
-    onSave({
-      ...environment,
-      worldCards: [...environment.worldCards, newCard],
+    // Kép generálás a háttérben
+    generateCardImage(cardName).then((backgroundImage) => {
+      const newCard: WorldCard = {
+        id: generateId('card'),
+        name: cardName,
+        damage: standardForm.damage,
+        health: standardForm.health,
+        element: standardForm.element,
+        kind: 'standard',
+        backgroundImage: backgroundImage || undefined,
+      }
+
+      onSave({
+        ...environment,
+        worldCards: [...environment.worldCards, newCard],
+      })
     })
+
     setStandardForm({ name: '', damage: 2, health: 2, element: 'earth' })
-    withFeedback('Sikeresen hozzaadtad a kartya listahoz.')
+    withFeedback('Sikeresen hozzaadtad a kartya listahoz. Kep generalas folyamatban...')
   }
 
   function handleLeaderSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -126,24 +157,32 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
       withFeedback('A vezerkartya neve kotelezo.', 'error')
       return
     }
-    const newCard: WorldCard = {
-      id: generateId('leader'),
-      name: leaderForm.name.trim(),
-      damage:
-        leaderForm.mode === 'double-damage' ? Math.min(base.damage * 2, 200) : base.damage,
-      health:
-        leaderForm.mode === 'double-health' ? Math.min(base.health * 2, 200) : base.health,
-      element: base.element,
-      kind: 'leader',
-      sourceCardId: base.id,
-    }
 
-    onSave({
-      ...environment,
-      worldCards: [...environment.worldCards, newCard],
+    const cardName = leaderForm.name.trim()
+
+    // Kép generálás a háttérben
+    generateCardImage(cardName).then((backgroundImage) => {
+      const newCard: WorldCard = {
+        id: generateId('leader'),
+        name: cardName,
+        damage:
+          leaderForm.mode === 'double-damage' ? Math.min(base.damage * 2, 200) : base.damage,
+        health:
+          leaderForm.mode === 'double-health' ? Math.min(base.health * 2, 200) : base.health,
+        element: base.element,
+        kind: 'leader',
+        sourceCardId: base.id,
+        backgroundImage: backgroundImage || undefined,
+      }
+
+      onSave({
+        ...environment,
+        worldCards: [...environment.worldCards, newCard],
+      })
     })
+
     setLeaderForm({ baseCardId: '', name: '', mode: 'double-damage' })
-    withFeedback('A vezerkartya elkeszult.')
+    withFeedback('A vezerkartya elkeszult. Kep generalas folyamatban...')
   }
 
   function handleStarterToggle(cardId: string) {
