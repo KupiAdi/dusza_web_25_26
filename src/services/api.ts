@@ -1,11 +1,5 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
-interface ApiResponse<T> {
-  success?: boolean;
-  error?: string;
-  [key: string]: any;
-}
-
 class ApiService {
   private token: string | null = null;
 
@@ -30,9 +24,8 @@ class ApiService {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
     };
 
     if (this.token) {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type DragEvent as ReactDragEvent } from 'react'
+import { useEffect, useRef, useState, type DragEvent as ReactDragEvent } from 'react'
 import type {
   BattleResult,
   DeckEntry,
@@ -61,7 +61,6 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
   const [message, setMessage] = useState<{ text: string; type: 'info' | 'error' } | null>(null)
   const dragSourceRef = useRef<'collection' | 'deck' | null>(null)
   const [dropIndex, setDropIndex] = useState<number | null>(null)
-  const [removeTargetActive, setRemoveTargetActive] = useState(false)
 
   const selectedPlayer = players.find((player) => player.id === selectedPlayerId) ?? null
   const playerEnvironment = environments.find((env) => env.id === selectedPlayer?.environmentId) ?? null
@@ -82,7 +81,6 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
   function resetDragState() {
     dragSourceRef.current = null
     setDropIndex(null)
-    setRemoveTargetActive(false)
   }
 
   function handleDragEnd() {
@@ -232,10 +230,6 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
     onUpdatePlayer(selectedPlayer.id, { deck: deckDraft })
     showMessage('Pakli elmentve.')
   }
-
-  const sortedPlayers = useMemo(() => {
-    return [...players].sort((a, b) => a.name.localeCompare(b.name))
-  }, [players])
 
   function getDeckRequirement(dungeon: Dungeon) {
     return dungeon.cardOrder.length
