@@ -572,8 +572,8 @@ app.post('/api/generate-image', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'A prompt mező kötelező!' });
     }
 
-    // Filename generálása, ha nincs megadva (szóköz = %20)
-    const imageFilename = filename || `${prompt.substring(0, 50).replace(/ /g, '%20')}.jpg`;
+    // Filename generálása, ha nincs megadva (szóköz megtartása)
+    const imageFilename = filename || `${prompt.substring(0, 50)}.jpg`;
     const sanitizedFilename = imageFilename.endsWith('.jpg') ? imageFilename : `${imageFilename}.jpg`;
     const imagePath = join(imagesDir, sanitizedFilename);
 
@@ -581,12 +581,15 @@ app.post('/api/generate-image', authMiddleware, async (req, res) => {
     if (existsSync(imagePath)) {
       console.log(`⚠️ A kép már létezik, használjuk a meglévőt: ${sanitizedFilename}`);
       
+      // URL-enkódolt path a válaszban
+      const encodedPath = `/images/${encodeURIComponent(sanitizedFilename)}`;
+      
       return res.json({
         success: true,
         message: 'A kép már létezik, meglévő kép használata',
         filename: sanitizedFilename,
-        path: `/images/${sanitizedFilename}`,
-        url: `http://localhost:${PORT}/images/${sanitizedFilename}`,
+        path: encodedPath,
+        url: `http://localhost:${PORT}${encodedPath}`,
         cached: true
       });
     }
@@ -613,13 +616,16 @@ app.post('/api/generate-image', authMiddleware, async (req, res) => {
 
     console.log(`✅ Kép sikeresen mentve: ${sanitizedFilename}`);
 
+    // URL-enkódolt path a válaszban
+    const encodedPath = `/images/${encodeURIComponent(sanitizedFilename)}`;
+
     // Sikeres válasz
     res.json({
       success: true,
       message: 'Kép sikeresen generálva',
       filename: sanitizedFilename,
-      path: `/images/${sanitizedFilename}`,
-      url: `http://localhost:${PORT}/images/${sanitizedFilename}`,
+      path: encodedPath,
+      url: `http://localhost:${PORT}${encodedPath}`,
       cached: false
     });
 
