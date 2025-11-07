@@ -366,27 +366,6 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
           <p>Kornyezet: {playerEnvironment.name}</p>
 
           <section className="sub-panel">
-            <h4>Gyujtemeny</h4>
-            <div className="card-grid">
-              {selectedPlayer.collection.map((card) => {
-                const worldCard = playerEnvironment.worldCards.find((item) => item.id === card.cardId)
-                if (!worldCard) {
-                  return null
-                }
-                return (
-                  <CardPreview
-                    key={card.cardId}
-                    card={worldCard}
-                    damage={card.damage}
-                    health={card.health}
-                    accent="collection"
-                  />
-                )
-              })}
-            </div>
-          </section>
-
-          <section className="sub-panel">
             <h4>Pakli szerkesztes</h4>
             <div className="deck-builder">
               <div className="deck-column">

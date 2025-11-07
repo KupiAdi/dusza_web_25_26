@@ -268,16 +268,21 @@
   display: grid;
   gap: 1.5rem;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  align-items: stretch;
 }
 
 .deck-column {
   display: grid;
   gap: 1rem;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100%;
 }
 
 .card-stack {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
+  min-height: 0;
 }
 
 .deck-actions {
@@ -430,10 +435,18 @@
   box-shadow: 0 10px 20px -15px rgba(15, 23, 42, 0.7);
 }
 
+.card-preview__meta {
+  flex: 1;
+  min-width: 0;
+}
+
 .card-preview__meta h5 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1rem;
   letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .card-badge {
@@ -553,6 +566,8 @@
 
 .primary-button {
   width: fit-content;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.95rem;
 }
 
 .battle-report {
