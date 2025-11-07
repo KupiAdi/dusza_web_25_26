@@ -21,7 +21,7 @@ function AppShell() {
   const [activeTab, setActiveTab] = useState<TabKey>('player')
   const [selectedEnvironmentId, setSelectedEnvironmentId] = useState<string>('')
   const [newEnvironmentName, setNewEnvironmentName] = useState('')
-  const [statusMessage, setStatusMessage] = useState<string | null>(null)
+  const [statusMessage, setStatusMessage] = useState<{ text: string; type: 'info' | 'error' } | null>(null)
 
   useEffect(() => {
     if (!selectedEnvironmentId && environments.length > 0) {
@@ -39,8 +39,8 @@ function AppShell() {
     return environments.find((env) => env.id === selectedEnvironmentId) ?? null
   }, [environments, selectedEnvironmentId])
 
-  function notify(message: string) {
-    setStatusMessage(message)
+  function notify(message: string, type: 'info' | 'error' = 'info') {
+    setStatusMessage({ text: message, type })
     setTimeout(() => setStatusMessage(null), 3000)
   }
 
@@ -48,15 +48,15 @@ function AppShell() {
     event.preventDefault()
     const trimmed = newEnvironmentName.trim()
     if (!trimmed) {
-      notify('Adj nevet az uj jatekkornyezetnek.')
+      notify('Adj nevet az uj jatekkornyezetnek.', 'error')
       return
     }
     if (trimmed.length > 32) {
-      notify('A kornyezet neve legfeljebb 32 karakter lehet.')
+      notify('A kornyezet neve legfeljebb 32 karakter lehet.', 'error')
       return
     }
     if (environments.some((env) => env.name.toLowerCase() === trimmed.toLowerCase())) {
-      notify('Ilyen nevu kornyezet mar letezik.')
+      notify('Ilyen nevu kornyezet mar letezik.', 'error')
       return
     }
 
@@ -111,7 +111,11 @@ function AppShell() {
         </nav>
       </header>
 
-      {statusMessage && <p className="feedback header-feedback">{statusMessage}</p>}
+      {statusMessage && (
+        <div className={`feedback feedback--${statusMessage.type} header-feedback`}>
+          {statusMessage.text}
+        </div>
+      )}
 
       <main className="app-main">
         <aside className="environment-sidebar">

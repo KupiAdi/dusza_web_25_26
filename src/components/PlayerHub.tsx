@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type DragEvent as ReactDragEvent } from 'react'
 import type {
   BattleResult,
   DeckEntry,
@@ -58,7 +58,10 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
   const [deckDraft, setDeckDraft] = useState<DeckEntry[]>([])
   const [latestBattle, setLatestBattle] = useState<BattleResult | null>(null)
   const [pendingReward, setPendingReward] = useState<PendingReward | null>(null)
-  const [message, setMessage] = useState<string | null>(null)
+  const [message, setMessage] = useState<{ text: string; type: 'info' | 'error' } | null>(null)
+  const dragSourceRef = useRef<'collection' | 'deck' | null>(null)
+  const [dropIndex, setDropIndex] = useState<number | null>(null)
+  const [removeTargetActive, setRemoveTargetActive] = useState(false)
 
   const selectedPlayer = players.find((player) => player.id === selectedPlayerId) ?? null
   const playerEnvironment = environments.find((env) => env.id === selectedPlayer?.environmentId) ?? null
@@ -71,71 +74,155 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
     }
   }, [selectedPlayer])
 
-  function showMessage(text: string) {
-    setMessage(text)
+  function showMessage(text: string, type: 'info' | 'error' = 'info') {
+    setMessage({ text, type })
     setTimeout(() => setMessage(null), 3000)
   }
 
-  function handleCreatePlayer(event: React.FormEvent<HTMLFormElement>) {
+  function resetDragState() {
+    dragSourceRef.current = null
+    setDropIndex(null)
+    setRemoveTargetActive(false)
+  }
+
+  function handleDragEnd() {
+    resetDragState()
+  }
+
+  function handleCollectionDragStart(
+    event: ReactDragEvent<HTMLDivElement>,
+    cardId: string,
+    disabled: boolean
+  ) {
+    if (disabled) {
+      event.preventDefault()
+      return
+    }
+    dragSourceRef.current = 'collection'
+    event.dataTransfer.effectAllowed = 'copy'
+    event.dataTransfer.setData('text/plain', cardId)
+    event.dataTransfer.setData('text/damareen-card-id', cardId)
+    event.dataTransfer.setData('text/damareen-source', 'collection')
+  }
+
+  function handleDeckDragStart(
+    event: ReactDragEvent<HTMLDivElement>,
+    index: number,
+    cardId: string
+  ) {
+    dragSourceRef.current = 'deck'
+    event.dataTransfer.effectAllowed = 'move'
+    event.dataTransfer.setData('text/plain', cardId)
+    event.dataTransfer.setData('text/damareen-card-id', cardId)
+    event.dataTransfer.setData('text/damareen-source', 'deck')
+    event.dataTransfer.setData('text/damareen-deck-index', String(index))
+  }
+
+  function handleCollectionDragOver(event: ReactDragEvent<HTMLDivElement>) {
+    if (dragSourceRef.current !== 'deck') {
+      return
+    }
     event.preventDefault()
-    if (!newPlayerForm.name.trim()) {
-      showMessage('Add meg a jatekos nevet.')
-      return
-    }
-    const environment = environments.find((env) => env.id === newPlayerForm.environmentId)
-    if (!environment) {
-      showMessage('Valassz egy jatekkornyezetet.')
-      return
-    }
-
-    const collection = prepareInitialCollection(environment)
-    if (collection.length === 0) {
-      showMessage('A kivalasztott kornyezethez meg nincs kezdo gyujtemeny.')
-      return
-    }
-
-    const profile: PlayerProfile = {
-      id: generateId('player'),
-      name: newPlayerForm.name.trim(),
-      environmentId: environment.id,
-      collection,
-      deck: [],
-      battleHistory: [],
-    }
-
-    onCreatePlayer(profile)
-    setNewPlayerForm({ name: '', environmentId: environment.id })
-    setSelectedPlayerId(profile.id)
-    showMessage('Jatekos letrehozva.')
+    event.dataTransfer.dropEffect = 'move'
   }
 
-  function addCardToDeck(cardId: string) {
-    if (!selectedPlayer) {
+  function handleCollectionDrop(event: ReactDragEvent<HTMLDivElement>) {
+    if (dragSourceRef.current !== 'deck') {
       return
     }
-    if (deckDraft.some((entry) => entry.cardId === cardId)) {
-      showMessage('Ez a kartya mar a pakliban van.')
+    event.preventDefault()
+    const fromIndex = Number.parseInt(
+      event.dataTransfer.getData('text/damareen-deck-index'),
+      10
+    )
+    if (Number.isNaN(fromIndex)) {
+      resetDragState()
       return
     }
-    setDeckDraft((prev) => [...prev, { cardId }])
+    setDeckDraft((prev) => prev.filter((_, idx) => idx !== fromIndex))
+    showMessage('Kartya eltavolitva a paklibol.')
+    resetDragState()
   }
 
-  function removeFromDeck(index: number) {
-    setDeckDraft((prev) => prev.filter((_, idx) => idx !== index))
+  function handleDeckDragOver(event: ReactDragEvent<HTMLDivElement>, index: number) {
+    if (!dragSourceRef.current) {
+      return
+    }
+    event.preventDefault()
+    event.dataTransfer.dropEffect =
+      dragSourceRef.current === 'collection' ? 'copy' : 'move'
+    setDropIndex((prev) => (prev === index ? prev : index))
   }
 
-  function moveDeckItem(index: number, direction: -1 | 1) {
-    setDeckDraft((prev) => {
-      const next = [...prev]
-      const targetIndex = index + direction
-      if (targetIndex < 0 || targetIndex >= next.length) {
-        return prev
+  function handleDeckDrop(event: ReactDragEvent<HTMLDivElement>, targetIndex: number) {
+    if (!dragSourceRef.current) {
+      return
+    }
+    event.preventDefault()
+    const cardId = event.dataTransfer.getData('text/damareen-card-id')
+    const source = event.dataTransfer.getData('text/damareen-source') as
+      | 'collection'
+      | 'deck'
+      | ''
+    if (!cardId || !source) {
+      resetDragState()
+      return
+    }
+
+    if (source === 'collection') {
+      if (deckDraft.some((entry) => entry.cardId === cardId)) {
+        showMessage('Ez a kartya mar a pakliban van.', 'error')
+        resetDragState()
+        return
       }
-      const temp = next[index]
-      next[index] = next[targetIndex]
-      next[targetIndex] = temp
-      return next
-    })
+      setDeckDraft((prev) => {
+        const next = [...prev]
+        next.splice(targetIndex, 0, { cardId })
+        return next
+      })
+      resetDragState()
+      return
+    }
+
+    if (source === 'deck') {
+      const fromIndex = Number.parseInt(
+        event.dataTransfer.getData('text/damareen-deck-index'),
+        10
+      )
+      if (Number.isNaN(fromIndex)) {
+        resetDragState()
+        return
+      }
+      if (fromIndex === targetIndex || fromIndex + 1 === targetIndex) {
+        resetDragState()
+        return
+      }
+      setDeckDraft((prev) => {
+        if (fromIndex < 0 || fromIndex >= prev.length) {
+          return prev
+        }
+        const next = [...prev]
+        const [moved] = next.splice(fromIndex, 1)
+        let insertIndex = targetIndex
+        if (fromIndex < targetIndex) {
+          insertIndex -= 1
+        }
+        next.splice(insertIndex, 0, moved)
+        return next
+      })
+      resetDragState()
+      return
+    }
+
+    resetDragState()
+  }
+
+  function handleDeckDragLeave(event: ReactDragEvent<HTMLDivElement>, index: number) {
+    const related = event.relatedTarget as Node | null
+    if (related && event.currentTarget.contains(related)) {
+      return
+    }
+    setDropIndex((prev) => (prev === index ? null : prev))
   }
 
   function saveDeck() {
@@ -156,11 +243,11 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
 
   function runFight(dungeon: Dungeon) {
     if (!selectedPlayer || !playerEnvironment) {
-      showMessage('Valassz ki egy jatekost es kornyezetet a harchoz.')
+      showMessage('Valassz ki egy jatekost es kornyezetet a harchoz.', 'error')
       return
     }
     if (deckDraft.length !== dungeon.cardOrder.length) {
-      showMessage(`A pakli merete ${dungeon.cardOrder.length} kartya kell legyen.`)
+      showMessage(`A pakli merete ${dungeon.cardOrder.length} kartya kell legyen.`, 'error')
       return
     }
 
@@ -180,7 +267,7 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
       setPendingReward({ type: dungeon.type, dungeonName: dungeon.name, battle })
       showMessage('Gyozelem! Valassz kartya jutalmat.')
     } else {
-      showMessage('A harc elveszett. Probald ujra!')
+      showMessage('A harc elveszett. Probald ujra!', 'error')
     }
   }
 
@@ -194,10 +281,43 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
     showMessage('A jutalom alkalmazva lett.')
   }
 
+  function handleCreatePlayer(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!newPlayerForm.name.trim()) {
+      showMessage('Add meg a jatekos nevet.', 'error')
+      return
+    }
+    const environment = environments.find((env) => env.id === newPlayerForm.environmentId)
+    if (!environment) {
+      showMessage('Valassz egy jatekkornyezetet.', 'error')
+      return
+    }
+
+    const collection = prepareInitialCollection(environment)
+    if (collection.length === 0) {
+      showMessage('A kivalasztott kornyezethez meg nincs kezdo gyujtemeny.', 'error')
+      return
+    }
+
+    const profile: PlayerProfile = {
+      id: generateId('player'),
+      name: newPlayerForm.name.trim(),
+      environmentId: environment.id,
+      collection,
+      deck: [],
+      battleHistory: [],
+    }
+
+    onCreatePlayer(profile)
+    setNewPlayerForm({ name: '', environmentId: environment.id })
+    setSelectedPlayerId(profile.id)
+    showMessage('Jatekos letrehozva.')
+  }
+
   return (
     <section className="panel">
       <h2>Jatekos kozpont</h2>
-      {message && <p className="feedback">{message}</p>}
+      {message && <div className={`feedback feedback--${message.type}`}>{message.text}</div>}
 
       <div className="panel-block">
         <h3>Uj jatek inditasa</h3>
@@ -271,31 +391,36 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
             <div className="deck-builder">
               <div className="deck-column">
                 <h5>Elerheto kartyak</h5>
-                <div className="card-grid card-grid--compact">
+                <div
+                  className="card-grid card-grid--compact"
+                  onDragOver={handleCollectionDragOver}
+                  onDrop={handleCollectionDrop}
+                >
                   {selectedPlayer.collection.map((card) => {
-                    const worldCard = playerEnvironment.worldCards.find((item) => item.id === card.cardId)
+                    const worldCard = playerEnvironment.worldCards.find(
+                      (item) => item.id === card.cardId
+                    )
                     if (!worldCard) {
                       return null
                     }
                     const disabled = deckDraft.some((entry) => entry.cardId === card.cardId)
                     return (
-                      <CardPreview
+                      <div
                         key={card.cardId}
-                        card={worldCard}
-                        damage={card.damage}
-                        health={card.health}
-                        accent={disabled ? 'deck' : 'collection'}
-                        actions={
-                          <button
-                            type="button"
-                            className="ghost-button"
-                            disabled={disabled}
-                            onClick={() => addCardToDeck(card.cardId)}
-                          >
-                            Hozzaadas
-                          </button>
+                        className={`draggable-card ${disabled ? 'is-disabled' : ''}`}
+                        draggable={!disabled}
+                        onDragStart={(event) =>
+                          handleCollectionDragStart(event, card.cardId, disabled)
                         }
-                      />
+                        onDragEnd={handleDragEnd}
+                      >
+                        <CardPreview
+                          card={worldCard}
+                          damage={card.damage}
+                          health={card.health}
+                          accent={disabled ? 'deck' : 'collection'}
+                        />
+                      </div>
                     )
                   })}
                 </div>
@@ -304,42 +429,57 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
                 <h5>Pakli sorrend</h5>
                 <div className="card-stack">
                   {deckDraft.map((entry, index) => {
-                    const worldCard = playerEnvironment.worldCards.find((item) => item.id === entry.cardId)
-                    const playerCardState = selectedPlayer.collection.find((item) => item.cardId === entry.cardId)
+                    const worldCard = playerEnvironment.worldCards.find(
+                      (item) => item.id === entry.cardId
+                    )
+                    const playerCardState = selectedPlayer.collection.find(
+                      (item) => item.cardId === entry.cardId
+                    )
                     if (!worldCard || !playerCardState) {
                       return null
                     }
                     return (
-                      <CardPreview
+                      <div
                         key={entry.cardId}
-                        card={worldCard}
-                        damage={playerCardState.damage}
-                        health={playerCardState.health}
-                        accent="deck"
-                        highlight
-                        actions={
-                          <div className="deck-actions">
-                            <button type="button" onClick={() => moveDeckItem(index, -1)} disabled={index === 0}>
-                              Fel
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => moveDeckItem(index, 1)}
-                              disabled={index === deckDraft.length - 1}
-                            >
-                              Le
-                            </button>
-                            <button type="button" onClick={() => removeFromDeck(index)}>
-                              Eltavolit
-                            </button>
-                          </div>
+                        className={`deck-draggable ${
+                          dropIndex === index ? 'is-drop-target' : ''
+                        }`}
+                        draggable
+                        onDragStart={(event) =>
+                          handleDeckDragStart(event, index, entry.cardId)
                         }
-                        footer={<span className="card-footnote">Pozicio {index + 1}</span>}
-                      />
+                        onDragEnd={handleDragEnd}
+                        onDragOver={(event) => handleDeckDragOver(event, index)}
+                        onDrop={(event) => handleDeckDrop(event, index)}
+                        onDragLeave={(event) => handleDeckDragLeave(event, index)}
+                      >
+                        <CardPreview
+                          card={worldCard}
+                          damage={playerCardState.damage}
+                          health={playerCardState.health}
+                          accent="deck"
+                          highlight
+                          footer={<span className="card-footnote">Pozicio {index + 1}</span>}
+                        />
+                      </div>
                     )
                   })}
+                  <div
+                    className={`deck-drop-zone ${
+                      dropIndex === deckDraft.length ? 'is-drop-target' : ''
+                    }`}
+                    onDragOver={(event) => handleDeckDragOver(event, deckDraft.length)}
+                    onDrop={(event) => handleDeckDrop(event, deckDraft.length)}
+                    onDragLeave={(event) => handleDeckDragLeave(event, deckDraft.length)}
+                  >
+                    {deckDraft.length === 0
+                      ? 'Húzd ide a kártyákat a pakli létrehozásához'
+                      : 'Húzd ide a kártyát a pakli végére'}
+                  </div>
                 </div>
-                <button type="button" onClick={saveDeck} className="primary-button">Pakli mentese</button>
+                <button type="button" onClick={saveDeck} className="primary-button">
+                  Pakli mentese
+                </button>
               </div>
             </div>
           </section>

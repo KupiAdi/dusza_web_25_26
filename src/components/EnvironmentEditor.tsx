@@ -59,7 +59,7 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
     const req = DUNGEON_REQUIREMENTS.encounter
     return { name: '', type: 'encounter', cardOrder: Array(req.total).fill('') }
   })
-  const [feedback, setFeedback] = useState<string | null>(null)
+  const [feedback, setFeedback] = useState<{ text: string; type: 'info' | 'error' } | null>(null)
 
   const standardCards = useMemo(
     () => environment.worldCards.filter((card) => card.kind === 'standard'),
@@ -70,31 +70,31 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
     [environment.worldCards]
   )
 
-  function withFeedback(message: string) {
-    setFeedback(message)
+  function withFeedback(message: string, type: 'info' | 'error' = 'info') {
+    setFeedback({ text: message, type })
     setTimeout(() => setFeedback(null), 3000)
   }
 
   function handleStandardSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!standardForm.name.trim()) {
-      withFeedback('Adj meg egy nevet a kartyahoz.')
+      withFeedback('Adj meg egy nevet a kartyahoz.', 'error')
       return
     }
     if (standardForm.name.length > 16) {
-      withFeedback('A kartya neve legfeljebb 16 karakter lehet.')
+      withFeedback('A kartya neve legfeljebb 16 karakter lehet.', 'error')
       return
     }
     if (environment.worldCards.some((card) => card.name.toLowerCase() === standardForm.name.toLowerCase())) {
-      withFeedback('Ez a kartya nev mar letezik.')
+      withFeedback('Ez a kartya nev mar letezik.', 'error')
       return
     }
     if (standardForm.damage < 2 || standardForm.damage > 100) {
-      withFeedback('A sebzes 2 es 100 kozott lehet.')
+      withFeedback('A sebzes 2 es 100 kozott lehet.', 'error')
       return
     }
     if (standardForm.health < 1 || standardForm.health > 100) {
-      withFeedback('Az eletero 1 es 100 kozott lehet.')
+      withFeedback('Az eletero 1 es 100 kozott lehet.', 'error')
       return
     }
 
@@ -119,11 +119,11 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
     event.preventDefault()
     const base = standardCards.find((card) => card.id === leaderForm.baseCardId)
     if (!base) {
-      withFeedback('Valassz ki egy alap kartyat a vezer letrehozasahoz.')
+      withFeedback('Valassz ki egy alap kartyat a vezer letrehozasahoz.', 'error')
       return
     }
     if (!leaderForm.name.trim()) {
-      withFeedback('A vezerkartya neve kotelezo.')
+      withFeedback('A vezerkartya neve kotelezo.', 'error')
       return
     }
     const newCard: WorldCard = {
@@ -202,7 +202,7 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
     event.preventDefault()
     const error = validateDungeonForm()
     if (error) {
-      withFeedback(error)
+      withFeedback(error, 'error')
       return
     }
     const newDungeon = {
@@ -231,7 +231,7 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
   function removeWorldCard(cardId: string) {
     const nextWorldCards = environment.worldCards.filter((card) => card.id !== cardId)
     if (nextWorldCards.length === environment.worldCards.length) {
-      withFeedback('A kartya nem talalhato.')
+      withFeedback('A kartya nem talalhato.', 'error')
       return
     }
 
@@ -268,7 +268,7 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
   return (
     <section className="panel">
       <h2>Jatekmester eszkozok</h2>
-      {feedback && <p className="feedback">{feedback}</p>}
+      {feedback && <div className={`feedback feedback--${feedback.type}`}>{feedback.text}</div>}
 
       <div className="panel-block">
         <h3>Uj sima kartya</h3>
