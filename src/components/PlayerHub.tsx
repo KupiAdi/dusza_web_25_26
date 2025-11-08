@@ -184,6 +184,7 @@ export function PlayerHub({
       return
     }
     event.preventDefault()
+    event.stopPropagation()
     event.dataTransfer.dropEffect =
       dragSourceRef.current === 'collection' ? 'copy' : 'move'
     setDropIndex((prev) => (prev === index ? prev : index))
@@ -194,6 +195,7 @@ export function PlayerHub({
       return
     }
     event.preventDefault()
+    event.stopPropagation()
     const cardId = event.dataTransfer.getData('text/damareen-card-id')
     const source = event.dataTransfer.getData('text/damareen-source') as
       | 'collection'
@@ -257,7 +259,32 @@ export function PlayerHub({
     if (related && event.currentTarget.contains(related)) {
       return
     }
+    event.stopPropagation()
     setDropIndex((prev) => (prev === index ? null : prev))
+  }
+
+  function handleDeckSurfaceDragOver(event: ReactDragEvent<HTMLDivElement>) {
+    if (!dragSourceRef.current) {
+      return
+    }
+    event.preventDefault()
+    event.stopPropagation()
+    event.dataTransfer.dropEffect =
+      dragSourceRef.current === 'collection' ? 'copy' : 'move'
+    setDropIndex((prev) => (prev === deckDraft.length ? prev : deckDraft.length))
+  }
+
+  function handleDeckSurfaceDrop(event: ReactDragEvent<HTMLDivElement>) {
+    handleDeckDrop(event, deckDraft.length)
+  }
+
+  function handleDeckSurfaceDragLeave(event: ReactDragEvent<HTMLDivElement>) {
+    const related = event.relatedTarget as Node | null
+    if (related && event.currentTarget.contains(related)) {
+      return
+    }
+    event.stopPropagation()
+    setDropIndex((prev) => (prev === deckDraft.length ? null : prev))
   }
 
   function getDeckRequirement(dungeon: Dungeon) {
@@ -388,6 +415,8 @@ export function PlayerHub({
     playersInSelectedEnvironment.some(
       (player) => player.name.toLowerCase() === trimmedNewGameName.toLowerCase()
     )
+
+  const isDeckSurfaceTarget = dropIndex === deckDraft.length
 
   return (
     <section className="panel">
@@ -546,7 +575,14 @@ export function PlayerHub({
               </div>
               <div className="deck-column">
                 <h5>Pakli sorrend</h5>
-                <div className="card-stack">
+                <div
+                  className={`card-stack ${dropIndex !== null ? 'is-dragging' : ''} ${
+                    isDeckSurfaceTarget ? 'is-drop-target' : ''
+                  }`}
+                  onDragOver={handleDeckSurfaceDragOver}
+                  onDrop={handleDeckSurfaceDrop}
+                  onDragLeave={handleDeckSurfaceDragLeave}
+                >
                   {deckDraft.map((entry, index) => {
                     const worldCard = playerEnvironment.worldCards.find(
                       (item) => item.id === entry.cardId
@@ -560,9 +596,7 @@ export function PlayerHub({
                     return (
                       <div
                         key={entry.cardId}
-                        className={`deck-draggable ${
-                          dropIndex === index ? 'is-drop-target' : ''
-                        }`}
+                        className={`deck-draggable ${dropIndex === index ? 'is-drop-target' : ''}`}
                         draggable
                         onDragStart={(event) =>
                           handleDeckDragStart(event, index, entry.cardId)
@@ -585,11 +619,11 @@ export function PlayerHub({
                   })}
                   <div
                     className={`deck-drop-zone ${
-                      dropIndex === deckDraft.length ? 'is-drop-target' : ''
-                    }`}
-                    onDragOver={(event) => handleDeckDragOver(event, deckDraft.length)}
-                    onDrop={(event) => handleDeckDrop(event, deckDraft.length)}
-                    onDragLeave={(event) => handleDeckDragLeave(event, deckDraft.length)}
+                      deckDraft.length === 0 || isDeckSurfaceTarget ? 'is-visible' : ''
+                    } ${isDeckSurfaceTarget ? 'is-drop-target' : ''}`}
+                    onDragOver={handleDeckSurfaceDragOver}
+                    onDrop={handleDeckSurfaceDrop}
+                    onDragLeave={handleDeckSurfaceDragLeave}
                   >
                     {deckDraft.length === 0
                       ? 'Húzd ide a kártyákat a pakli létrehozásához'

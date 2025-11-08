@@ -524,41 +524,69 @@
 }
 
 .card-stack {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
+  height: 100%;
   min-height: 0;
+  padding: 1rem;
+  border-radius: 0.9rem;
+  border: 2px dashed rgba(148, 163, 184, 0.5);
+  background: rgba(248, 250, 252, 0.9);
+  align-content: flex-start;
+  justify-items: center;
+  transition: border-color 150ms ease, background 150ms ease;
 }
 
-.card-stack .deck-draggable {
+.card-stack.is-dragging {
+  border-color: rgba(37, 99, 235, 0.45);
+  background: rgba(191, 219, 254, 0.25);
+}
+
+.card-stack.is-drop-target {
+  border-color: #2563eb;
+  background: rgba(37, 99, 235, 0.12);
+}
+
+.card-stack .deck-draggable,
+.card-grid--compact .draggable-card {
+  width: 100%;
   max-width: 200px;
 }
 
-.deck-actions {
+.deck-draggable {
   display: flex;
-  gap: 0.5rem;
+  cursor: grab;
+  height: 100%;
 }
 
-.deck-actions button {
-  flex: 1;
-  padding: 0.4rem 0.6rem;
-  font-size: 0.8rem;
+.deck-draggable .card-preview {
+  width: 100%;
 }
 
-.card-grid {
-  display: grid;
-  gap: 1.5rem;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+.deck-drop-zone {
+  grid-column: 1 / -1;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  min-height: 8rem;
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  background: rgba(191, 219, 254, 0.2);
+  color: #1d4ed8;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 0.03em;
+  transition: background 150ms ease, color 150ms ease;
 }
 
-.card-grid--compact {
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 1rem;
+.deck-drop-zone.is-visible {
+  display: flex;
 }
 
-.card-grid--reward {
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 1rem;
+.deck-drop-zone.is-drop-target {
+  background: rgba(37, 99, 235, 0.15);
+  color: #1e3a8a;
 }
 
 .card-toggle-grid {
@@ -1082,6 +1110,18 @@
   }
 }
 
+.card-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.card-grid--compact {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  justify-items: center;
+}
+
 @media (max-width: 960px) {
   .app-main {
     grid-template-columns: 1fr;
@@ -1093,5 +1133,15 @@
 
   .workspace {
     order: 1;
+  }
+
+  .card-stack {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+
+  .card-grid--compact {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+    justify-items: center;
   }
 }
