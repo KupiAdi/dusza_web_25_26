@@ -11,6 +11,7 @@ import { generateId } from '../utils/id'
 import { applyReward, getRewardDescriptor } from '../utils/rewards'
 import { BattleReport } from './BattleReport'
 import { CardPreview } from './CardPreview'
+import { ConfirmDialog } from './ConfirmDialog'
 
 interface PlayerHubProps {
   environments: GameEnvironment[]
@@ -47,14 +48,14 @@ function prepareInitialCollection(environment: GameEnvironment): PlayerProfile['
     .filter((item): item is { cardId: string; damage: number; health: number } => Boolean(item))
 }
 
-export function PlayerHub({ 
-  environments, 
-  players, 
-  onCreatePlayer, 
+export function PlayerHub({
+  environments,
+  players,
+  onCreatePlayer,
   onUpdatePlayer,
   onRemovePlayer,
   defaultPlayerName,
-  defaultEnvironmentId
+  defaultEnvironmentId,
 }: PlayerHubProps) {
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
   const [newGameName, setNewGameName] = useState('')
@@ -62,6 +63,8 @@ export function PlayerHub({
   const [latestBattle, setLatestBattle] = useState<BattleResult | null>(null)
   const [pendingReward, setPendingReward] = useState<PendingReward | null>(null)
   const [message, setMessage] = useState<{ text: string; type: 'info' | 'error' } | null>(null)
+  const [playerPendingRemoval, setPlayerPendingRemoval] = useState<{ id: string; name: string } | null>(null)
+  const [isRemovingPlayer, setIsRemovingPlayer] = useState(false)
   const dragSourceRef = useRef<'collection' | 'deck' | null>(null)
   const [dropIndex, setDropIndex] = useState<number | null>(null)
   const saveTimeoutRef = useRef<number | null>(null)
@@ -351,18 +354,34 @@ export function PlayerHub({
     }
   }
 
-  async function handleRemovePlayer(playerId: string, playerName: string) {
-    if (!confirm(`Biztosan törölni szeretnéd ezt a játékmenetet: "${playerName}"?`)) {
+  function requestPlayerRemoval(playerId: string, playerName: string) {
+    setPlayerPendingRemoval({ id: playerId, name: playerName })
+  }
+
+  function cancelPlayerRemoval() {
+    if (isRemovingPlayer) {
       return
     }
+    setPlayerPendingRemoval(null)
+  }
+
+  async function confirmPlayerRemoval() {
+    if (!playerPendingRemoval) {
+      return
+    }
+    const playerToRemove = playerPendingRemoval
+    setIsRemovingPlayer(true)
     try {
-      if (selectedPlayerId === playerId) {
+      if (selectedPlayerId === playerToRemove.id) {
         setSelectedPlayerId(null)
       }
-      await onRemovePlayer(playerId)
+      await onRemovePlayer(playerToRemove.id)
       showMessage('Játékmenet törölve.')
     } catch (error: any) {
-      showMessage(error.message || 'Hiba történt a játékmenet törlése során', 'error')
+      showMessage(error?.message || 'Hiba történt a játékmenet törlése során', 'error')
+    } finally {
+      setIsRemovingPlayer(false)
+      setPlayerPendingRemoval(null)
     }
   }
 
@@ -408,14 +427,16 @@ export function PlayerHub({
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleRemovePlayer(player.id, player.name)}
+                      onClick={() => requestPlayerRemoval(player.id, player.name)}
+                      disabled={isRemovingPlayer}
                       style={{
                         padding: '8px 12px',
                         background: '#dc2626',
                         border: 'none',
                         borderRadius: '4px',
                         color: 'white',
-                        cursor: 'pointer',
+                        cursor: isRemovingPlayer ? 'not-allowed' : 'pointer',
+                        opacity: isRemovingPlayer ? 0.7 : 1,
                         minWidth: '60px'
                       }}
                       title="Játékmenet törlése"
@@ -651,6 +672,20 @@ export function PlayerHub({
           </section>
         </div>
       )}
+      <ConfirmDialog
+        open={Boolean(playerPendingRemoval)}
+        title="Játékmenet törlése"
+        description={
+          playerPendingRemoval
+            ? `Biztosan törlöd a "${playerPendingRemoval.name}" játékmenetet? Ez a művelet nem visszavonható.`
+            : ''
+        }
+        confirmLabel="Játékmenet törlése"
+        cancelLabel="Mégse"
+        onCancel={cancelPlayerRemoval}
+        onConfirm={confirmPlayerRemoval}
+        isConfirming={isRemovingPlayer}
+      />
     </section>
   )
 }

@@ -3,6 +3,7 @@ import './App.css'
 import { EnvironmentEditor } from './components/EnvironmentEditor'
 import { PlayerHub } from './components/PlayerHub'
 import { Auth } from './components/Auth'
+import { ConfirmDialog } from './components/ConfirmDialog'
 import { GameDataProvider, useGameData } from './state/GameDataContext'
 import { AuthProvider, useAuth } from './state/AuthContext'
 import type { GameEnvironment } from './types'
@@ -37,6 +38,8 @@ function AppShell() {
   const [selectedEnvironmentId, setSelectedEnvironmentId] = useState<string>('')
   const [newEnvironmentName, setNewEnvironmentName] = useState('')
   const [statusMessage, setStatusMessage] = useState<{ text: string; type: 'info' | 'error' } | null>(null)
+  const [environmentPendingRemoval, setEnvironmentPendingRemoval] = useState<GameEnvironment | null>(null)
+  const [isRemovingEnvironment, setIsRemovingEnvironment] = useState(false)
 
   useEffect(() => {
     if (!selectedEnvironmentId && environments.length > 0) {
@@ -101,15 +104,34 @@ function AppShell() {
     }
   }
 
-  async function handleEnvironmentRemoval(environmentId: string) {
-    if (!confirm('Biztosan törlöd ezt a játékot?')) {
+  function handleEnvironmentRemovalRequest(environment: GameEnvironment) {
+    setEnvironmentPendingRemoval(environment)
+  }
+
+  function cancelEnvironmentRemoval() {
+    if (isRemovingEnvironment) {
       return
     }
+    setEnvironmentPendingRemoval(null)
+  }
+
+  async function confirmEnvironmentRemoval() {
+    if (!environmentPendingRemoval) {
+      return
+    }
+    const targetEnvironment = environmentPendingRemoval
+    setIsRemovingEnvironment(true)
     try {
-      await removeEnvironment(environmentId)
+      await removeEnvironment(targetEnvironment.id)
+      if (selectedEnvironmentId === targetEnvironment.id) {
+        setSelectedEnvironmentId('')
+      }
       notify('A játék törölve lett.')
     } catch (error: any) {
-      notify(error.message || 'Hiba történt a játék törlése során', 'error')
+      notify(error?.message || 'Hiba történt a játék törlése során', 'error')
+    } finally {
+      setIsRemovingEnvironment(false)
+      setEnvironmentPendingRemoval(null)
     }
   }
 
@@ -206,7 +228,8 @@ function AppShell() {
                   <button
                     type="button"
                     className="link-button"
-                    onClick={() => handleEnvironmentRemoval(environment.id)}
+                    onClick={() => handleEnvironmentRemovalRequest(environment)}
+                    disabled={isRemovingEnvironment}
                   >
                     Törlés
                   </button>
@@ -260,6 +283,20 @@ function AppShell() {
           )}
         </section>
       </main>
+      <ConfirmDialog
+        open={Boolean(environmentPendingRemoval)}
+        title="Játék törlése"
+        description={
+          environmentPendingRemoval
+            ? `Biztosan törlöd a "${environmentPendingRemoval.name}" játékot? Ez a művelet nem visszavonható.`
+            : ''
+        }
+        confirmLabel="Játék törlése"
+        cancelLabel="Mégse"
+        onCancel={cancelEnvironmentRemoval}
+        onConfirm={confirmEnvironmentRemoval}
+        isConfirming={isRemovingEnvironment}
+      />
     </div>
   )
 }
