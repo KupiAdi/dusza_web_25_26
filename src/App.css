@@ -59,6 +59,12 @@
   border-bottom-color: #2563eb;
 }
 
+.auth-tabs button:focus,
+.auth-tabs button:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 .auth-form {
   display: flex;
   flex-direction: column;
@@ -93,6 +99,12 @@
 .form-field input:disabled {
   background: #f1f5f9;
   cursor: not-allowed;
+}
+
+.form-field .field-error {
+  color: #dc2626;
+  font-size: 0.8125rem;
+  margin-top: 0.25rem;
 }
 
 .form-field small {

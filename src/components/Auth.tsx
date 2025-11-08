@@ -3,6 +3,12 @@ import { useAuth } from '../state/AuthContext';
 
 type AuthMode = 'login' | 'register';
 
+type FieldErrors = {
+  username?: string;
+  email?: string;
+  password?: string;
+};
+
 export function Auth() {
   const [mode, setMode] = useState<AuthMode>('login');
   const [username, setUsername] = useState('');
@@ -10,12 +16,35 @@ export function Auth() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   const { login, register } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    const newErrors: FieldErrors = {};
+    if (!username.trim()) {
+      newErrors.username = 'Kérjük, töltse ki a mezőt';
+    }
+
+    if (mode === 'register' && !email.trim()) {
+      newErrors.email = 'Kérjük, töltse ki a mezőt';
+    }
+
+    if (!password) {
+      newErrors.password = 'Kérjük, töltse ki a mezőt';
+    } else if (password.length < 6) {
+      newErrors.password = 'Legalább 6 karakteres jelszó szükséges';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setFieldErrors(newErrors);
+      return;
+    }
+
+    setFieldErrors({});
     setIsLoading(true);
 
     try {
@@ -39,6 +68,8 @@ export function Auth() {
   const toggleMode = () => {
     setMode(mode === 'login' ? 'register' : 'login');
     setError(null);
+    setFieldErrors({});
+    setPassword('');
   };
 
   return (
@@ -66,7 +97,7 @@ export function Auth() {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="auth-form">
+        <form onSubmit={handleSubmit} className="auth-form" noValidate>
           {error && <div className="auth-error">{error}</div>}
 
           <div className="form-field">
@@ -75,11 +106,22 @@ export function Auth() {
               id="username"
               type="text"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
+              onChange={(e) => {
+                setUsername(e.target.value);
+                if (fieldErrors.username) {
+                  setFieldErrors((prev) => ({ ...prev, username: undefined }));
+                }
+              }}
               autoComplete="username"
               disabled={isLoading}
+              aria-invalid={fieldErrors.username ? 'true' : 'false'}
+              aria-describedby={fieldErrors.username ? 'username-error' : undefined}
             />
+            {fieldErrors.username && (
+              <span className="field-error" id="username-error">
+                {fieldErrors.username}
+              </span>
+            )}
           </div>
 
           {mode === 'register' && (
@@ -89,11 +131,22 @@ export function Auth() {
                 id="email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (fieldErrors.email) {
+                    setFieldErrors((prev) => ({ ...prev, email: undefined }));
+                  }
+                }}
                 autoComplete="email"
                 disabled={isLoading}
+                aria-invalid={fieldErrors.email ? 'true' : 'false'}
+                aria-describedby={fieldErrors.email ? 'email-error' : undefined}
               />
+              {fieldErrors.email && (
+                <span className="field-error" id="email-error">
+                  {fieldErrors.email}
+                </span>
+              )}
             </div>
           )}
 
@@ -103,14 +156,25 @@ export function Auth() {
               id="password"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (fieldErrors.password) {
+                  setFieldErrors((prev) => ({ ...prev, password: undefined }));
+                }
+              }}
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
               disabled={isLoading}
+              aria-invalid={fieldErrors.password ? 'true' : 'false'}
+              aria-describedby={fieldErrors.password ? 'password-error' : undefined}
             />
-            {mode === 'register' && (
-              <small>Legalább 6 karakter hosszú</small>
+            {fieldErrors.password ? (
+              <span className="field-error" id="password-error">
+                {fieldErrors.password}
+              </span>
+            ) : (
+              mode === 'register' && (
+                <small>Legalább 6 karakteres jelszó szükséges</small>
+              )
             )}
           </div>
 
