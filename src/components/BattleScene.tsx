@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import type { BattleResult, GameEnvironment, PlayerCardState } from '../types'
+import type { BattleResult, GameEnvironment, PlayerCardState, DungeonType } from '../types'
 import { CardPreview } from './CardPreview'
+import { getRewardDescriptor } from '../utils/rewards'
 import './BattleScene.css'
 
 interface BattleSceneProps {
@@ -8,11 +9,12 @@ interface BattleSceneProps {
   environment: GameEnvironment
   playerCards: PlayerCardState[]
   onComplete: () => void
+  onRewardSelected: (cardId: string) => void
 }
 
-type AnimationPhase = 'intro' | 'round-setup' | 'clash' | 'round-result' | 'complete'
+type AnimationPhase = 'intro' | 'round-setup' | 'clash' | 'round-result' | 'complete' | 'reward-selection'
 
-export function BattleScene({ result, environment, playerCards, onComplete }: BattleSceneProps) {
+export function BattleScene({ result, environment, playerCards, onComplete, onRewardSelected }: BattleSceneProps) {
   const [currentRoundIndex, setCurrentRoundIndex] = useState(0)
   const [phase, setPhase] = useState<AnimationPhase>('intro')
   const [playerScore, setPlayerScore] = useState(0)
@@ -65,10 +67,18 @@ export function BattleScene({ result, environment, playerCards, onComplete }: Ba
         break
 
       case 'complete':
-        // Show final result for 2 seconds, then close
+        // Show final result for 2.5 seconds, then go to reward selection or close
         timer = window.setTimeout(() => {
-          onComplete()
+          if (result.playerVictory) {
+            setPhase('reward-selection')
+          } else {
+            onComplete()
+          }
         }, 2500)
+        break
+      
+      case 'reward-selection':
+        // Wait for user to select a card
         break
     }
 
@@ -97,19 +107,34 @@ export function BattleScene({ result, environment, playerCards, onComplete }: Ba
 
   const dungeon = environment.dungeons.find((d) => d.id === result.dungeonId)
 
+  const handleSkip = () => {
+    if (result.playerVictory) {
+      setPhase('reward-selection')
+    } else {
+      onComplete()
+    }
+  }
+
+  const handleRewardSelection = (cardId: string) => {
+    onRewardSelected(cardId)
+    onComplete()
+  }
+
   return (
     <div className="battle-scene">
       <div className="battle-scene__overlay" />
       
-      {/* Skip button */}
-      <button 
-        type="button" 
-        className="battle-skip-button"
-        onClick={onComplete}
-        aria-label="Harc átugrása"
-      >
-        Átugrás →
-      </button>
+      {/* Skip button - only show before reward selection */}
+      {phase !== 'reward-selection' && (
+        <button 
+          type="button" 
+          className="battle-skip-button"
+          onClick={handleSkip}
+          aria-label="Harc átugrása"
+        >
+          Átugrás →
+        </button>
+      )}
       
       <div className="battle-scene__content">
         {/* Final Result Screen */}
@@ -138,7 +163,7 @@ export function BattleScene({ result, environment, playerCards, onComplete }: Ba
         )}
 
         {/* Header with scores */}
-        {phase !== 'complete' && (
+        {phase !== 'complete' && phase !== 'reward-selection' && (
           <div className="battle-scene__header">
             <div className="battle-score battle-score--player">
               <span className="battle-score__label">Játékos</span>
@@ -167,7 +192,7 @@ export function BattleScene({ result, environment, playerCards, onComplete }: Ba
         )}
 
         {/* Battle Arena */}
-        {phase !== 'intro' && phase !== 'complete' && (
+        {phase !== 'intro' && phase !== 'complete' && phase !== 'reward-selection' && (
           <div className="battle-arena">
             {/* Player Card */}
             <div className={`battle-card battle-card--player ${phase === 'clash' ? 'is-attacking' : ''} ${phase === 'round-result' && currentRound.winner === 'player' ? 'is-winner' : ''} ${phase === 'round-result' && currentRound.winner === 'dungeon' ? 'is-loser' : ''}`}>
@@ -198,6 +223,43 @@ export function BattleScene({ result, environment, playerCards, onComplete }: Ba
           <div className={`battle-result-message ${currentRound.winner === 'player' ? 'victory' : 'defeat'}`}>
             <p className="result-winner">{currentRound.winner === 'player' ? 'Játékos nyert!' : 'Kazamata nyert!'}</p>
             <p className="result-reason">{currentRound.reason}</p>
+          </div>
+        )}
+
+        {/* Reward Selection */}
+        {phase === 'reward-selection' && (
+          <div className="battle-reward-selection">
+            <div className="reward-selection-header">
+              <h2 className="reward-title">🎁 Válassz Jutalmat!</h2>
+              <p className="reward-subtitle">
+                {dungeon?.name}: {getRewardDescriptor(dungeon?.type as DungeonType)}
+              </p>
+              <p className="reward-hint">Kattints arra a kártyára, amelyiket fejleszteni szeretnéd</p>
+            </div>
+            
+            <div className="reward-card-grid">
+              {playerCards.map((cardState) => {
+                const worldCard = environment.worldCards.find((c) => c.id === cardState.cardId)
+                if (!worldCard) return null
+                
+                return (
+                  <button
+                    key={cardState.cardId}
+                    type="button"
+                    className="reward-card-button"
+                    onClick={() => handleRewardSelection(cardState.cardId)}
+                  >
+                    <CardPreview
+                      card={worldCard}
+                      damage={cardState.damage}
+                      health={cardState.health}
+                      accent="reward"
+                      highlight
+                    />
+                  </button>
+                )
+              })}
+            </div>
           </div>
         )}
       </div>

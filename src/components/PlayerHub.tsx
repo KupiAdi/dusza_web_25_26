@@ -9,7 +9,7 @@ import type {
 import { DUNGEON_TYPE_NAMES } from '../types'
 import { runBattle } from '../utils/battle'
 import { generateId } from '../utils/id'
-import { applyReward, getRewardDescriptor } from '../utils/rewards'
+import { applyReward } from '../utils/rewards'
 import { BattleReport } from './BattleReport'
 import { BattleScene } from './BattleScene'
 import { CardPreview } from './CardPreview'
@@ -26,12 +26,6 @@ interface PlayerHubProps {
   onRemovePlayer: (playerId: string) => void
   defaultPlayerName: string
   defaultEnvironmentId: string
-}
-
-interface PendingReward {
-  type: Dungeon['type']
-  dungeonName: string
-  battle: BattleResult
 }
 
 function prepareInitialCollection(environment: GameEnvironment): PlayerProfile['collection'] {
@@ -59,7 +53,6 @@ export function PlayerHub({
   const [deckDraft, setDeckDraft] = useState<DeckEntry[]>([])
   const [latestBattle, setLatestBattle] = useState<BattleResult | null>(null)
   const [showBattleScene, setShowBattleScene] = useState(false)
-  const [pendingReward, setPendingReward] = useState<PendingReward | null>(null)
   const [message, setMessage] = useState<{ text: string; type: 'info' | 'error' } | null>(null)
   const [playerPendingRemoval, setPlayerPendingRemoval] = useState<{ id: string; name: string } | null>(null)
   const [isRemovingPlayer, setIsRemovingPlayer] = useState(false)
@@ -321,28 +314,29 @@ export function PlayerHub({
   function handleBattleSceneComplete() {
     setShowBattleScene(false)
     
-    if (!latestBattle || !selectedPlayer) {
+    if (!latestBattle) {
       return
     }
 
-    const dungeon = playerEnvironment?.dungeons.find((d) => d.id === latestBattle.dungeonId)
-    
-    if (latestBattle.playerVictory && dungeon) {
-      setPendingReward({ type: dungeon.type, dungeonName: dungeon.name, battle: latestBattle })
-      showMessage('Győzelem! Válassz kártyajutalmat.')
+    if (latestBattle.playerVictory) {
+      showMessage('Győzelem! A jutalom alkalmazva lett.')
     } else {
       showMessage('A harc elveszett. Próbáld újra!', 'error')
     }
   }
 
-  function applyRewardSelection(cardId: string) {
-    if (!selectedPlayer || !pendingReward) {
+  function handleRewardSelection(cardId: string) {
+    if (!selectedPlayer || !latestBattle) {
       return
     }
-    const updatedCollection = applyReward(selectedPlayer.collection, cardId, pendingReward.type)
+    
+    const dungeon = playerEnvironment?.dungeons.find((d) => d.id === latestBattle.dungeonId)
+    if (!dungeon) {
+      return
+    }
+    
+    const updatedCollection = applyReward(selectedPlayer.collection, cardId, dungeon.type)
     onUpdatePlayer(selectedPlayer.id, { collection: updatedCollection })
-    setPendingReward(null)
-    showMessage('A jutalom alkalmazva lett.')
   }
 
   async function handleCreatePlayer() {
@@ -440,6 +434,7 @@ export function PlayerHub({
           environment={playerEnvironment}
           playerCards={selectedPlayer.collection}
           onComplete={handleBattleSceneComplete}
+          onRewardSelected={handleRewardSelection}
         />
       )}
       
@@ -678,36 +673,6 @@ export function PlayerHub({
               ))}
             </ul>
           </section>
-
-          {pendingReward && (
-            <section className="sub-panel">
-            <h4>Jutalom választása ({pendingReward.dungeonName} - {getRewardDescriptor(pendingReward.type)})</h4>
-              <div className="card-grid card-grid--reward">
-                {selectedPlayer.collection.map((card) => {
-                  const worldCard = playerEnvironment.worldCards.find((item) => item.id === card.cardId)
-                  if (!worldCard) {
-                    return null
-                  }
-                  return (
-                    <button
-                      key={card.cardId}
-                      type="button"
-                      className="card-preview-button"
-                      onClick={() => applyRewardSelection(card.cardId)}
-                    >
-                      <CardPreview
-                        card={worldCard}
-                        damage={card.damage}
-                        health={card.health}
-                        accent="reward"
-                        highlight
-                      />
-                    </button>
-                  )
-                })}
-              </div>
-            </section>
-          )}
 
           {latestBattle && (
             <BattleReport result={latestBattle} environment={playerEnvironment} />
