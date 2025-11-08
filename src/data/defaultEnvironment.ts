@@ -60,7 +60,6 @@ export const defaultEnvironment: GameEnvironment = {
       backgroundImage: '/images/Darth%20ObiWan.jpg',
     },
   ],
-  starterCollection: ['aragorn', 'galadriel', 'melian', 'eldarion'],
   dungeons: [
     {
       id: 'enc-embers',

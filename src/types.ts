@@ -27,7 +27,6 @@ export interface GameEnvironment {
   id: string
   name: string
   worldCards: WorldCard[]
-  starterCollection: string[]
   dungeons: Dungeon[]
 }
 
