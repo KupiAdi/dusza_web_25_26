@@ -530,6 +530,10 @@
   min-height: 0;
 }
 
+.card-stack .deck-draggable {
+  max-width: 200px;
+}
+
 .deck-actions {
   display: flex;
   gap: 0.5rem;
