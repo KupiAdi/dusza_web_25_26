@@ -641,14 +641,13 @@ app.post('/api/generate-image', authMiddleware, async (req, res) => {
       });
     }
 
-    // URL készítése - a szóközöket és speciális karaktereket enkódoljuk
-    const encodedPrompt = encodeURIComponent(prompt);
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1920`;
+    const detailedPrompt = `Fantasy trading card game character art, ${prompt}, digital art, detailed fantasy character portrait, professional game card illustration, high quality, centered composition, dramatic lighting, epic fantasy style, sharp focus, trending on artstation`;
+    
+    const encodedPrompt = encodeURIComponent(detailedPrompt);
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1920&nologo=true&enhance=true`;
 
     console.log(`Kép generálása: "${prompt}"`);
-    console.log(`URL: ${imageUrl}`);
 
-    // Kép letöltése
     const response = await fetch(imageUrl);
     
     if (!response.ok) {
