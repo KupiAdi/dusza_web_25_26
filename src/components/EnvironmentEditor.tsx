@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { DungeonType, GameEnvironment, WorldCard } from '../types'
 import { CardPreview } from './CardPreview'
 import { generateId } from '../utils/id'
@@ -44,6 +44,12 @@ interface EnvironmentEditorProps {
 }
 
 export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProps) {
+  const environmentRef = useRef(environment)
+  
+  useEffect(() => {
+    environmentRef.current = environment
+  }, [environment])
+
   const [standardForm, setStandardForm] = useState<StandardCardForm>({
     name: '',
     damage: '2',
@@ -79,14 +85,15 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
     try {
       const { api } = await import('../services/api')
       const data = await api.generateImage(cardName)
-      return data.path // pl: "/images/Orc%20warrior.jpg"
+      console.log('🖼️ Kép API válasz:', cardName, data)
+      return data.path
     } catch (error) {
       console.error('Hiba a kép generálásakor:', error)
-      return '' // Ha nem sikerült, üres string
+      return ''
     }
   }
 
-  function handleStandardSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleStandardSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!standardForm.name.trim()) {
       withFeedback('Adj meg egy nevet a kartyahoz.', 'error')
@@ -124,30 +131,46 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
     }
 
     const cardName = standardForm.name.trim()
+    const newCardId = generateId('card')
 
-    // Kép generálás a háttérben
-    generateCardImage(cardName).then((backgroundImage) => {
-      const newCard: WorldCard = {
-        id: generateId('card'),
-        name: cardName,
-        damage: damageValue,
-        health: healthValue,
-        element: standardForm.element,
-        kind: 'standard',
-        backgroundImage: backgroundImage || undefined,
-      }
+    const newCard: WorldCard = {
+      id: newCardId,
+      name: cardName,
+      damage: damageValue,
+      health: healthValue,
+      element: standardForm.element,
+      kind: 'standard',
+      backgroundImage: undefined,
+    }
 
-      onSave({
-        ...environment,
-        worldCards: [...environment.worldCards, newCard],
-      })
+    onSave({
+      ...environment,
+      worldCards: [...environment.worldCards, newCard],
     })
 
     setStandardForm({ name: '', damage: '2', health: '2', element: 'earth' })
     withFeedback('Sikeresen hozzaadtad a kartya listahoz. Kep generalas folyamatban...')
+
+    setTimeout(async () => {
+      const backgroundImage = await generateCardImage(cardName)
+      if (backgroundImage) {
+        const currentEnv = environmentRef.current
+        const cardExists = currentEnv.worldCards.some((card) => card.id === newCardId)
+        if (cardExists) {
+          onSave({
+            ...currentEnv,
+            worldCards: currentEnv.worldCards.map((card) =>
+              card.id === newCardId
+                ? { ...card, backgroundImage }
+                : card
+            ),
+          })
+        }
+      }
+    }, 200)
   }
 
-  function handleLeaderSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleLeaderSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const base = standardCards.find((card) => card.id === leaderForm.baseCardId)
     if (!base) {
@@ -160,30 +183,46 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
     }
 
     const cardName = leaderForm.name.trim()
+    const newCardId = generateId('leader')
 
-    // Kép generálás a háttérben
-    generateCardImage(cardName).then((backgroundImage) => {
-      const newCard: WorldCard = {
-        id: generateId('leader'),
-        name: cardName,
-        damage:
-          leaderForm.mode === 'double-damage' ? Math.min(base.damage * 2, 200) : base.damage,
-        health:
-          leaderForm.mode === 'double-health' ? Math.min(base.health * 2, 200) : base.health,
-        element: base.element,
-        kind: 'leader',
-        sourceCardId: base.id,
-        backgroundImage: backgroundImage || undefined,
-      }
+    const newCard: WorldCard = {
+      id: newCardId,
+      name: cardName,
+      damage:
+        leaderForm.mode === 'double-damage' ? Math.min(base.damage * 2, 200) : base.damage,
+      health:
+        leaderForm.mode === 'double-health' ? Math.min(base.health * 2, 200) : base.health,
+      element: base.element,
+      kind: 'leader',
+      sourceCardId: base.id,
+      backgroundImage: undefined,
+    }
 
-      onSave({
-        ...environment,
-        worldCards: [...environment.worldCards, newCard],
-      })
+    onSave({
+      ...environment,
+      worldCards: [...environment.worldCards, newCard],
     })
 
     setLeaderForm({ baseCardId: '', name: '', mode: 'double-damage' })
     withFeedback('A vezerkartya elkeszult. Kep generalas folyamatban...')
+
+    setTimeout(async () => {
+      const backgroundImage = await generateCardImage(cardName)
+      if (backgroundImage) {
+        const currentEnv = environmentRef.current
+        const cardExists = currentEnv.worldCards.some((card) => card.id === newCardId)
+        if (cardExists) {
+          onSave({
+            ...currentEnv,
+            worldCards: currentEnv.worldCards.map((card) =>
+              card.id === newCardId
+                ? { ...card, backgroundImage }
+                : card
+            ),
+          })
+        }
+      }
+    }, 200)
   }
 
   function handleStarterToggle(cardId: string) {
@@ -451,6 +490,34 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
               </label>
             )
           })}
+        </div>
+      </div>
+
+      <div className="panel-block">
+        <h3>Vezerkartyak</h3>
+        <div className="card-toggle-grid">
+          {leaderCards.length === 0 && <p>Meg nincs egy vezerkartya sem.</p>}
+          {leaderCards.map((card) => (
+            <div key={card.id}>
+              <CardPreview
+                card={card}
+                accent="world"
+                actions={
+                  <button
+                    type="button"
+                    className="ghost-button"
+                    onClick={(event) => {
+                      event.preventDefault()
+                      event.stopPropagation()
+                      removeWorldCard(card.id)
+                    }}
+                  >
+                    Torles
+                  </button>
+                }
+              />
+            </div>
+          ))}
         </div>
       </div>
 

@@ -85,7 +85,6 @@ function AppShell() {
   async function handleEnvironmentUpdate(updatedEnvironment: GameEnvironment) {
     try {
       await updateEnvironment(updatedEnvironment)
-      notify('Kornyezet mentve.')
     } catch (error: any) {
       notify(error.message || 'Hiba tortent a kornyezet mentese soran', 'error')
     }
