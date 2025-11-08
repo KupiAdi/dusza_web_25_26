@@ -175,7 +175,6 @@ export function PlayerHub({
       return
     }
     setDeckDraft((prev) => prev.filter((_, idx) => idx !== fromIndex))
-    showMessage('Kártya eltávolítva a pakliból.')
     resetDragState()
   }
 

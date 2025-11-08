@@ -82,7 +82,6 @@ function AppShell() {
       id: generateId('environment'),
       name: trimmed,
       worldCards: [],
-      starterCollection: [],
       dungeons: [],
     }
 

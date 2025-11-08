@@ -175,18 +175,12 @@ app.get('/api/environments', authMiddleware, async (req, res) => {
       );
     }
 
-    // For each environment, get cards, dungeons, and starter collection
+    // For each environment, get cards and dungeons
     const enrichedEnvironments = await Promise.all(
       environments.map(async (env) => {
         // Get world cards
         const [worldCards] = await db.query(
           'SELECT id, name, damage, health, element, kind, source_card_id as sourceCardId, background_image as backgroundImage FROM world_cards WHERE environment_id = ?',
-          [env.id]
-        );
-
-        // Get starter collection
-        const [starterCards] = await db.query(
-          'SELECT card_id FROM starter_collection WHERE environment_id = ? ORDER BY sort_order',
           [env.id]
         );
 
@@ -214,7 +208,6 @@ app.get('/api/environments', authMiddleware, async (req, res) => {
           id: env.id,
           name: env.name,
           worldCards,
-          starterCollection: starterCards.map(row => row.card_id),
           dungeons: dungeonsWithCards
         };
       })
@@ -244,7 +237,7 @@ app.post('/api/environments', authMiddleware, async (req, res) => {
     await connection.beginTransaction();
 
     const { environment } = req.body;
-    const { id, name, worldCards, starterCollection, dungeons } = environment;
+    const { id, name, worldCards, dungeons } = environment;
 
     // Check if environment exists
     const [existing] = await connection.query(
@@ -268,7 +261,6 @@ app.post('/api/environments', authMiddleware, async (req, res) => {
       // Delete existing cards, dungeons, etc. (cascade will handle related data)
       await connection.query('DELETE FROM world_cards WHERE environment_id = ?', [id]);
       await connection.query('DELETE FROM dungeons WHERE environment_id = ?', [id]);
-      await connection.query('DELETE FROM starter_collection WHERE environment_id = ?', [id]);
     }
 
     // Insert world cards
@@ -288,20 +280,6 @@ app.post('/api/environments', authMiddleware, async (req, res) => {
       await connection.query(
         'INSERT INTO world_cards (id, environment_id, name, damage, health, element, kind, source_card_id, background_image) VALUES ?',
         [cardValues]
-      );
-    }
-
-    // Insert starter collection
-    if (starterCollection && starterCollection.length > 0) {
-      const starterValues = starterCollection.map((cardId, index) => [
-        id,
-        cardId,
-        index
-      ]);
-
-      await connection.query(
-        'INSERT INTO starter_collection (environment_id, card_id, sort_order) VALUES ?',
-        [starterValues]
       );
     }
 
@@ -641,14 +619,13 @@ app.post('/api/generate-image', authMiddleware, async (req, res) => {
       });
     }
 
-    // URL készítése - a szóközöket és speciális karaktereket enkódoljuk
-    const encodedPrompt = encodeURIComponent(prompt);
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1920`;
+    const detailedPrompt = `Fantasy trading card game character art, ${prompt}, digital art, detailed fantasy character portrait, professional game card illustration, high quality, centered composition, dramatic lighting, epic fantasy style, sharp focus, trending on artstation`;
+    
+    const encodedPrompt = encodeURIComponent(detailedPrompt);
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1920&nologo=true&enhance=true`;
 
     console.log(`Kép generálása: "${prompt}"`);
-    console.log(`URL: ${imageUrl}`);
 
-    // Kép letöltése
     const response = await fetch(imageUrl);
     
     if (!response.ok) {

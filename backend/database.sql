@@ -44,18 +44,6 @@ CREATE TABLE IF NOT EXISTS world_cards (
     INDEX idx_environment_id (environment_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Starter Collection (junction table)
-CREATE TABLE IF NOT EXISTS starter_collection (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    environment_id VARCHAR(100) NOT NULL,
-    card_id VARCHAR(100) NOT NULL,
-    sort_order INT DEFAULT 0,
-    FOREIGN KEY (environment_id) REFERENCES environments(id) ON DELETE CASCADE,
-    FOREIGN KEY (card_id) REFERENCES world_cards(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_env_card (environment_id, card_id),
-    INDEX idx_environment_id (environment_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 -- Dungeons table
 CREATE TABLE IF NOT EXISTS dungeons (
     id VARCHAR(100) PRIMARY KEY,
