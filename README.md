@@ -171,7 +171,6 @@ The application uses the following tables:
 - `users` - User accounts
 - `environments` - Game environments (user-specific)
 - `world_cards` - Cards in environments
-- `starter_collection` - Starting card collections
 - `dungeons` - Dungeon definitions
 - `dungeon_card_order` - Card order in dungeons
 - `player_profiles` - Player profiles (user-specific)

@@ -337,7 +337,6 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
     onSave({
       ...environment,
       worldCards: nextWorldCards,
-      starterCollection: [],
       dungeons: nextDungeons,
     })
 
