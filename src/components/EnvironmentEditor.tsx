@@ -225,13 +225,6 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
     }, 200)
   }
 
-  function handleStarterToggle(cardId: string) {
-    const exists = environment.starterCollection.includes(cardId)
-    const next = exists
-      ? environment.starterCollection.filter((id) => id !== cardId)
-      : [...environment.starterCollection, cardId]
-    onSave({ ...environment, starterCollection: next })
-  }
 
   function handleDungeonTypeChange(type: DungeonType) {
     const req = DUNGEON_REQUIREMENTS[type]
@@ -314,7 +307,6 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
       return
     }
 
-    const nextStarterCollection = environment.starterCollection.filter((id) => id !== cardId)
     const affectedDungeons = environment.dungeons.filter((dungeon) =>
       dungeon.cardOrder.includes(cardId)
     )
@@ -326,7 +318,7 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
     onSave({
       ...environment,
       worldCards: nextWorldCards,
-      starterCollection: nextStarterCollection,
+      starterCollection: [],
       dungeons: nextDungeons,
     })
 
@@ -457,39 +449,30 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
       </div>
 
       <div className="panel-block">
-        <h3>Kezdő gyűjtemény</h3>
+        <h3>Sima kártyák</h3>
         <div className="card-toggle-grid">
           {standardCards.length === 0 && <p>Még nincs egy sima kártya sem.</p>}
-          {standardCards.map((card) => {
-            const checked = environment.starterCollection.includes(card.id)
-            return (
-              <label key={card.id} className="card-toggle">
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  onChange={() => handleStarterToggle(card.id)}
-                />
-                <CardPreview
-                  card={card}
-                  accent={checked ? 'collection' : 'world'}
-                  highlight={checked}
-                  actions={
-                    <button
-                      type="button"
-                      className="ghost-button"
-                      onClick={(event) => {
-                        event.preventDefault()
-                        event.stopPropagation()
-                        removeWorldCard(card.id)
-                      }}
-                    >
-                      Törlés
-                    </button>
-                  }
-                />
-              </label>
-            )
-          })}
+          {standardCards.map((card) => (
+            <div key={card.id}>
+              <CardPreview
+                card={card}
+                accent="world"
+                actions={
+                  <button
+                    type="button"
+                    className="ghost-button"
+                    onClick={(event) => {
+                      event.preventDefault()
+                      event.stopPropagation()
+                      removeWorldCard(card.id)
+                    }}
+                  >
+                    Törlés
+                  </button>
+                }
+              />
+            </div>
+          ))}
         </div>
       </div>
 

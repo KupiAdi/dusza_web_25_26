@@ -32,19 +32,14 @@ interface PendingReward {
 }
 
 function prepareInitialCollection(environment: GameEnvironment): PlayerProfile['collection'] {
-  return environment.starterCollection
-    .map((cardId) => {
-      const card = environment.worldCards.find((item) => item.id === cardId)
-      if (!card) {
-        return null
-      }
-      return {
-        cardId: card.id,
-        damage: card.damage,
-        health: card.health,
-      }
-    })
-    .filter((item): item is { cardId: string; damage: number; health: number } => Boolean(item))
+  // All standard cards are automatically included in the starting collection
+  return environment.worldCards
+    .filter((card) => card.kind === 'standard')
+    .map((card) => ({
+      cardId: card.id,
+      damage: card.damage,
+      health: card.health,
+    }))
 }
 
 export function PlayerHub({ 
@@ -328,7 +323,7 @@ export function PlayerHub({
 
       const collection = prepareInitialCollection(environment)
       if (collection.length === 0) {
-        showMessage('A kiválasztott játékhoz még nincs kezdő gyűjtemény.', 'error')
+        showMessage('A kiválasztott játékhoz még nincsenek kártyák.', 'error')
         return
       }
 
