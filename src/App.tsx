@@ -212,6 +212,8 @@ function AppShell() {
               players={players}
               onCreatePlayer={addPlayer}
               onUpdatePlayer={updatePlayer}
+              defaultPlayerName={user?.username ?? ''}
+              defaultEnvironmentId={selectedEnvironmentId}
             />
           )}
 

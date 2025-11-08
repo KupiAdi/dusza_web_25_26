@@ -20,11 +20,8 @@ interface PlayerHubProps {
     playerId: string,
     updates: Partial<Omit<PlayerProfile, 'id' | 'environmentId'>>
   ) => void
-}
-
-interface NewPlayerForm {
-  name: string
-  environmentId: string
+  defaultPlayerName: string
+  defaultEnvironmentId: string
 }
 
 interface PendingReward {
@@ -49,12 +46,16 @@ function prepareInitialCollection(environment: GameEnvironment): PlayerProfile['
     .filter((item): item is { cardId: string; damage: number; health: number } => Boolean(item))
 }
 
-export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlayer }: PlayerHubProps) {
-  const [newPlayerForm, setNewPlayerForm] = useState<NewPlayerForm>({
-    name: '',
-    environmentId: environments[0]?.id ?? '',
-  })
+export function PlayerHub({ 
+  environments, 
+  players, 
+  onCreatePlayer, 
+  onUpdatePlayer,
+  defaultPlayerName,
+  defaultEnvironmentId
+}: PlayerHubProps) {
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
+  const [newGameName, setNewGameName] = useState('')
   const [deckDraft, setDeckDraft] = useState<DeckEntry[]>([])
   const [latestBattle, setLatestBattle] = useState<BattleResult | null>(null)
   const [pendingReward, setPendingReward] = useState<PendingReward | null>(null)
@@ -275,15 +276,18 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
     showMessage('A jutalom alkalmazva lett.')
   }
 
-  function handleCreatePlayer(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (!newPlayerForm.name.trim()) {
-      showMessage('Add meg a játékos nevét.', 'error')
+  function handleCreatePlayer() {
+    if (!newGameName.trim()) {
+      showMessage('Add meg a játék nevét.', 'error')
       return
     }
-    const environment = environments.find((env) => env.id === newPlayerForm.environmentId)
+    if (!defaultPlayerName) {
+      showMessage('Nincs bejelentkezett felhasználó.', 'error')
+      return
+    }
+    const environment = environments.find((env) => env.id === defaultEnvironmentId)
     if (!environment) {
-      showMessage('Válassz egy játékkörnyezetet.', 'error')
+      showMessage('Válassz ki egy környezetet a bal oldali menüből.', 'error')
       return
     }
 
@@ -295,7 +299,7 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
 
     const profile: PlayerProfile = {
       id: generateId('player'),
-      name: newPlayerForm.name.trim(),
+      name: newGameName.trim(),
       environmentId: environment.id,
       collection,
       deck: [],
@@ -303,9 +307,9 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
     }
 
     onCreatePlayer(profile)
-    setNewPlayerForm({ name: '', environmentId: environment.id })
+    setNewGameName('')
     setSelectedPlayerId(profile.id)
-    showMessage('Játékos létrehozva.')
+    showMessage('Új játék indítva.')
   }
 
   return (
@@ -314,36 +318,64 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
       {message && <div className={`feedback feedback--${message.type}`}>{message.text}</div>}
 
       <div className="panel-block">
-        <h3>Új játék indítása</h3>
-        <form className="form-grid" onSubmit={handleCreatePlayer}>
+        <h3>Játékok</h3>
+        {players.length > 0 && (
+          <div>
+            <h4>Meglévő játékok</h4>
+            <ul style={{ listStyle: 'none', padding: 0 }}>
+              {players.map((player) => {
+                const env = environments.find((e) => e.id === player.environmentId)
+                return (
+                  <li key={player.id} style={{ marginBottom: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPlayerId(player.id)}
+                      style={{
+                        padding: '8px 12px',
+                        background: selectedPlayerId === player.id ? '#4a5568' : '#2d3748',
+                        border: 'none',
+                        borderRadius: '4px',
+                        color: 'white',
+                        cursor: 'pointer',
+                        width: '100%',
+                        textAlign: 'left'
+                      }}
+                    >
+                      <strong>{env?.name || 'Ismeretlen környezet'}</strong> - {player.name}
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        )}
+        
+        <div style={{ marginTop: '16px' }}>
+          <h4>Új játék indítása</h4>
+          <p>Környezet: <strong>{environments.find(e => e.id === defaultEnvironmentId)?.name || 'Válassz környezetet'}</strong></p>
           <label>
-            Név
+            Játék neve
             <input
-              value={newPlayerForm.name}
-              onChange={(event) => setNewPlayerForm((prev) => ({ ...prev, name: event.target.value }))}
+              type="text"
+              value={newGameName}
+              onChange={(e) => setNewGameName(e.target.value)}
+              placeholder="Add meg a játék nevét..."
               maxLength={32}
             />
           </label>
-          <label>
-            Környezet
-            <select
-              value={newPlayerForm.environmentId}
-              onChange={(event) => setNewPlayerForm((prev) => ({ ...prev, environmentId: event.target.value }))}
-            >
-              {environments.map((env) => (
-                <option key={env.id} value={env.id}>
-                  {env.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button type="submit">Játék létrehozása</button>
-        </form>
+          <button 
+            type="button" 
+            onClick={handleCreatePlayer}
+            disabled={!defaultPlayerName || !defaultEnvironmentId || !newGameName.trim()}
+          >
+            Új játék indítása
+          </button>
+        </div>
       </div>
 
       {selectedPlayer && playerEnvironment && (
         <div className="panel-block">
-          <h3>Aktív játékos: {selectedPlayer.name}</h3>
+          <h3>Aktív játék: {selectedPlayer.name}</h3>
           <p>Környezet: {playerEnvironment.name}</p>
 
           <section className="sub-panel">
