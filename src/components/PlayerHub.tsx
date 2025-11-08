@@ -308,12 +308,16 @@ export function PlayerHub({
 
   async function handleCreatePlayer() {
     try {
-      if (!newGameName.trim()) {
+      if (!trimmedNewGameName) {
         showMessage('Add meg a játékmenet nevét.', 'error')
         return
       }
       if (!defaultPlayerName) {
         showMessage('Nincs bejelentkezett felhasználó.', 'error')
+        return
+      }
+      if (isDuplicateGameName) {
+        showMessage('Ez a játékmenet név már létezik ebben a játékban.', 'error')
         return
       }
       const environment = environments.find((env) => env.id === defaultEnvironmentId)
@@ -330,7 +334,7 @@ export function PlayerHub({
 
       const profile: PlayerProfile = {
         id: generateId('player'),
-        name: newGameName.trim(),
+        name: trimmedNewGameName,
         environmentId: environment.id,
         collection,
         deck: [],
@@ -364,6 +368,12 @@ export function PlayerHub({
 
   // Filter players by selected environment
   const playersInSelectedEnvironment = players.filter((p) => p.environmentId === defaultEnvironmentId)
+  const trimmedNewGameName = newGameName.trim()
+  const isDuplicateGameName =
+    trimmedNewGameName.length > 0 &&
+    playersInSelectedEnvironment.some(
+      (player) => player.name.toLowerCase() === trimmedNewGameName.toLowerCase()
+    )
 
   return (
     <section className="panel">
@@ -419,26 +429,58 @@ export function PlayerHub({
           </div>
         )}
         
-        <div style={{ marginTop: '16px' }}>
+        <div className="start-session">
           <h4>Új játékmenet indítása</h4>
-          <p>Játék: <strong>{environments.find(e => e.id === defaultEnvironmentId)?.name || 'Válassz játékot'}</strong></p>
-          <label>
-            Játékmenet neve
-            <input
-              type="text"
-              value={newGameName}
-              onChange={(e) => setNewGameName(e.target.value)}
-              placeholder="Add meg a játékmenet nevét..."
-              maxLength={32}
-            />
-          </label>
-          <button 
-            type="button" 
-            onClick={handleCreatePlayer}
-            disabled={!defaultPlayerName || !defaultEnvironmentId || !newGameName.trim()}
+          <p className="start-session__meta">
+            Játék:{' '}
+            <strong>
+              {environments.find((environment) => environment.id === defaultEnvironmentId)?.name ||
+                'Válassz játékot'}
+            </strong>
+          </p>
+          <form
+            className="form-grid start-session__form"
+            onSubmit={(event) => {
+              event.preventDefault()
+              handleCreatePlayer()
+            }}
           >
-            Új játékmenet indítása
-          </button>
+            <label htmlFor="new-session-name">
+              Játékmenet neve
+              <input
+                id="new-session-name"
+                type="text"
+                value={newGameName}
+                onChange={(event) => setNewGameName(event.target.value)}
+                placeholder="Add meg a játékmenet nevét..."
+                maxLength={32}
+                aria-invalid={isDuplicateGameName ? 'true' : 'false'}
+                aria-describedby="new-session-name-hint"
+              />
+              <span
+                id="new-session-name-hint"
+                className={`field-hint ${isDuplicateGameName ? 'field-hint--error' : ''}`}
+              >
+                {isDuplicateGameName
+                  ? 'Ez a név már foglalt ebben a játékban. Válassz másikat.'
+                  : 'Add meg a játékmenet nevét, legfeljebb 32 karakterben.'}
+              </span>
+            </label>
+            <div className="start-session__actions">
+              <button
+                type="submit"
+                className="primary-button"
+                disabled={
+                  !defaultPlayerName ||
+                  !defaultEnvironmentId ||
+                  !trimmedNewGameName ||
+                  isDuplicateGameName
+                }
+              >
+                Új játékmenet indítása
+              </button>
+            </div>
+          </form>
         </div>
       </div>
 
