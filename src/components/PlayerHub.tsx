@@ -20,6 +20,7 @@ interface PlayerHubProps {
     playerId: string,
     updates: Partial<Omit<PlayerProfile, 'id' | 'environmentId'>>
   ) => void
+  onRemovePlayer: (playerId: string) => void
   defaultPlayerName: string
   defaultEnvironmentId: string
 }
@@ -51,6 +52,7 @@ export function PlayerHub({
   players, 
   onCreatePlayer, 
   onUpdatePlayer,
+  onRemovePlayer,
   defaultPlayerName,
   defaultEnvironmentId
 }: PlayerHubProps) {
@@ -62,17 +64,46 @@ export function PlayerHub({
   const [message, setMessage] = useState<{ text: string; type: 'info' | 'error' } | null>(null)
   const dragSourceRef = useRef<'collection' | 'deck' | null>(null)
   const [dropIndex, setDropIndex] = useState<number | null>(null)
+  const saveTimeoutRef = useRef<number | null>(null)
+  const isLoadingDeckRef = useRef(false)
 
   const selectedPlayer = players.find((player) => player.id === selectedPlayerId) ?? null
   const playerEnvironment = environments.find((env) => env.id === selectedPlayer?.environmentId) ?? null
 
   useEffect(() => {
     if (selectedPlayer) {
+      isLoadingDeckRef.current = true
       setDeckDraft(selectedPlayer.deck)
+      setTimeout(() => {
+        isLoadingDeckRef.current = false
+      }, 100)
     } else {
       setDeckDraft([])
     }
   }, [selectedPlayer])
+
+  useEffect(() => {
+    if (isLoadingDeckRef.current || !selectedPlayer) {
+      return
+    }
+
+    const isDifferent = JSON.stringify(deckDraft) !== JSON.stringify(selectedPlayer.deck)
+    if (isDifferent) {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current)
+      }
+
+      saveTimeoutRef.current = window.setTimeout(() => {
+        onUpdatePlayer(selectedPlayer.id, { deck: deckDraft })
+      }, 500)
+    }
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current)
+      }
+    }
+  }, [deckDraft, selectedPlayer, onUpdatePlayer])
 
   function showMessage(text: string, type: 'info' | 'error' = 'info') {
     setMessage({ text, type })
@@ -224,14 +255,6 @@ export function PlayerHub({
     setDropIndex((prev) => (prev === index ? null : prev))
   }
 
-  function saveDeck() {
-    if (!selectedPlayer) {
-      return
-    }
-    onUpdatePlayer(selectedPlayer.id, { deck: deckDraft })
-    showMessage('Pakli elmentve.')
-  }
-
   function getDeckRequirement(dungeon: Dungeon) {
     return dungeon.cardOrder.length
   }
@@ -312,6 +335,21 @@ export function PlayerHub({
     showMessage('Új játék indítva.')
   }
 
+  async function handleRemovePlayer(playerId: string, playerName: string) {
+    if (!confirm(`Biztosan törölni szeretnéd ezt a játékot: "${playerName}"?`)) {
+      return
+    }
+    try {
+      if (selectedPlayerId === playerId) {
+        setSelectedPlayerId(null)
+      }
+      await onRemovePlayer(playerId)
+      showMessage('Játék törölve.')
+    } catch (error: any) {
+      showMessage(error.message || 'Hiba történt a játék törlése során', 'error')
+    }
+  }
+
   return (
     <section className="panel">
       <h2>Játékos központ</h2>
@@ -326,7 +364,7 @@ export function PlayerHub({
               {players.map((player) => {
                 const env = environments.find((e) => e.id === player.environmentId)
                 return (
-                  <li key={player.id} style={{ marginBottom: '8px' }}>
+                  <li key={player.id} style={{ marginBottom: '8px', display: 'flex', gap: '8px' }}>
                     <button
                       type="button"
                       onClick={() => setSelectedPlayerId(player.id)}
@@ -337,11 +375,27 @@ export function PlayerHub({
                         borderRadius: '4px',
                         color: 'white',
                         cursor: 'pointer',
-                        width: '100%',
+                        flex: 1,
                         textAlign: 'left'
                       }}
                     >
                       <strong>{env?.name || 'Ismeretlen környezet'}</strong> - {player.name}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemovePlayer(player.id, player.name)}
+                      style={{
+                        padding: '8px 12px',
+                        background: '#dc2626',
+                        border: 'none',
+                        borderRadius: '4px',
+                        color: 'white',
+                        cursor: 'pointer',
+                        minWidth: '60px'
+                      }}
+                      title="Játék törlése"
+                    >
+                      Törlés
                     </button>
                   </li>
                 )
@@ -469,9 +523,6 @@ export function PlayerHub({
                       : 'Húzd ide a kártyát a pakli végére'}
                   </div>
                 </div>
-                <button type="button" onClick={saveDeck} className="primary-button">
-                  Pakli mentése
-                </button>
               </div>
             </div>
           </section>

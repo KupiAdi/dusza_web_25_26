@@ -21,6 +21,7 @@ function AppShell() {
     removeEnvironment,
     addPlayer,
     updatePlayer,
+    removePlayer,
   } = useGameData()
   const [activeTab, setActiveTab] = useState<TabKey>('player')
   const [selectedEnvironmentId, setSelectedEnvironmentId] = useState<string>('')
@@ -212,6 +213,7 @@ function AppShell() {
               players={players}
               onCreatePlayer={addPlayer}
               onUpdatePlayer={updatePlayer}
+              onRemovePlayer={removePlayer}
               defaultPlayerName={user?.username ?? ''}
               defaultEnvironmentId={selectedEnvironmentId}
             />
