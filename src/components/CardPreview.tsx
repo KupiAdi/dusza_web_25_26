@@ -14,11 +14,6 @@ const ELEMENT_THEME: Record<WorldCard['element'], {
   air: { label: 'Levegő', emoji: '💨', primary: '#a855f7', secondary: '#6366f1', glow: 'rgba(99, 102, 241, 0.3)' },
 }
 
-const KIND_BADGE: Record<WorldCard['kind'], string> = {
-  standard: 'Sima',
-  leader: 'Vezér',
-}
-
 export type CardPreviewAccent = 'world' | 'collection' | 'deck' | 'dungeon' | 'reward'
 
 interface CardPreviewProps {

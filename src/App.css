@@ -753,7 +753,7 @@
   justify-content: flex-end;
   align-items: flex-start;
   gap: 0.5rem;
-  padding: 1rem;
+  padding: .5rem;
 }
 
 .card-preview__stats-compact {
