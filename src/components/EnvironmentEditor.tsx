@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { DungeonType, GameEnvironment, WorldCard } from '../types'
 import { CardPreview } from './CardPreview'
+import { ConfirmDialog } from './ConfirmDialog'
 import { generateId } from '../utils/id'
 
 const DUNGEON_REQUIREMENTS: Record<
@@ -66,6 +67,7 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
     return { name: '', type: 'encounter', cardOrder: Array(req.total).fill('') }
   })
   const [feedback, setFeedback] = useState<{ text: string; type: 'info' | 'error' } | null>(null)
+  const [cardPendingRemoval, setCardPendingRemoval] = useState<WorldCard | null>(null)
 
   const standardCards = useMemo(
     () => environment.worldCards.filter((card) => card.kind === 'standard'),
@@ -300,7 +302,24 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
     withFeedback('Kazamata eltávolítva.')
   }
 
+  function requestWorldCardRemoval(card: WorldCard) {
+    setCardPendingRemoval(card)
+  }
+
+  function cancelWorldCardRemoval() {
+    setCardPendingRemoval(null)
+  }
+
+  function confirmWorldCardRemoval() {
+    if (!cardPendingRemoval) {
+      return
+    }
+    removeWorldCard(cardPendingRemoval.id)
+  }
+
   function removeWorldCard(cardId: string) {
+    setCardPendingRemoval(null)
+
     const nextWorldCards = environment.worldCards.filter((card) => card.id !== cardId)
     if (nextWorldCards.length === environment.worldCards.length) {
       withFeedback('A kártya nem található.', 'error')
@@ -337,250 +356,239 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
   }
 
   return (
-    <section className="panel">
-      <h2>Játékmester eszközök</h2>
-      {feedback && <div className={`feedback feedback--${feedback.type}`}>{feedback.text}</div>}
+    <>
+      <section className="panel">
+        <h2>Játékmester eszközök</h2>
+        {feedback && <div className={`feedback feedback--${feedback.type}`}>{feedback.text}</div>}
 
-      <div className="panel-block">
-        <h3>Új sima kártya</h3>
-        <form className="form-grid" onSubmit={handleStandardSubmit}>
-          <label>
-            Név
-            <input
-              value={standardForm.name}
-              onChange={(event) =>
-                setStandardForm((prev) => ({ ...prev, name: event.target.value }))
-              }
-              maxLength={16}
-            />
-          </label>
-          <label>
-            Sebzés
-            <input
-              type="number"
-              min={2}
-              max={100}
-              value={standardForm.damage}
-              onChange={(event) =>
-                setStandardForm((prev) => ({ ...prev, damage: event.target.value }))
-              }
-            />
-          </label>
-          <label>
-            Életerő
-            <input
-              type="number"
-              min={1}
-              max={100}
-              value={standardForm.health}
-              onChange={(event) =>
-                setStandardForm((prev) => ({ ...prev, health: event.target.value }))
-              }
-            />
-          </label>
-          <label>
-            Típus
-            <select
-              value={standardForm.element}
-              onChange={(event) =>
-                setStandardForm((prev) => ({
-                  ...prev,
-                  element: event.target.value as WorldCard['element'],
-                }))
-              }
-            >
-              {CARD_TYPES.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button type="submit">Kártya hozzáadása</button>
-        </form>
-      </div>
-
-      <div className="panel-block">
-        <h3>Új vezérkártya</h3>
-        <form className="form-grid" onSubmit={handleLeaderSubmit}>
-          <label>
-            Alap kártya
-            <select
-              value={leaderForm.baseCardId}
-              onChange={(event) =>
-                setLeaderForm((prev) => ({ ...prev, baseCardId: event.target.value }))
-              }
-            >
-              <option value="">Válassz...</option>
-              {standardCards.map((card) => (
-                <option key={card.id} value={card.id}>
-                  {card.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Név
-            <input
-              value={leaderForm.name}
-              onChange={(event) =>
-                setLeaderForm((prev) => ({ ...prev, name: event.target.value }))
-              }
-              maxLength={16}
-            />
-          </label>
-          <label>
-            Erősítési mód
-            <select
-              value={leaderForm.mode}
-              onChange={(event) =>
-                setLeaderForm((prev) => ({
-                  ...prev,
-                  mode: event.target.value as LeaderCardForm['mode'],
-                }))
-              }
-            >
-              <option value="double-damage">Sebzés duplázás</option>
-              <option value="double-health">Életerő duplázás</option>
-            </select>
-          </label>
-          <button type="submit">Vezér létrehozása</button>
-        </form>
-      </div>
-
-      <div className="panel-block">
-        <h3>Sima kártyák</h3>
-        <div className="card-toggle-grid">
-          {standardCards.length === 0 && <p>Még nincs egy sima kártya sem.</p>}
-          {standardCards.map((card) => (
-            <div key={card.id}>
-              <CardPreview
-                card={card}
-                accent="world"
-                actions={
-                  <button
-                    type="button"
-                    className="ghost-button"
-                    onClick={(event) => {
-                      event.preventDefault()
-                      event.stopPropagation()
-                      removeWorldCard(card.id)
-                    }}
-                  >
-                    Törlés
-                  </button>
+        <div className="panel-block">
+          <h3>Új sima kártya</h3>
+          <form className="form-grid" onSubmit={handleStandardSubmit}>
+            <label>
+              Név
+              <input
+                value={standardForm.name}
+                onChange={(event) =>
+                  setStandardForm((prev) => ({ ...prev, name: event.target.value }))
+                }
+                maxLength={16}
+              />
+            </label>
+            <label>
+              Sebzés
+              <input
+                type="number"
+                min={2}
+                max={100}
+                value={standardForm.damage}
+                onChange={(event) =>
+                  setStandardForm((prev) => ({ ...prev, damage: event.target.value }))
                 }
               />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="panel-block">
-        <h3>Vezérkártyák</h3>
-        <div className="card-toggle-grid">
-          {leaderCards.length === 0 && <p>Még nincs egy vezérkártya sem.</p>}
-          {leaderCards.map((card) => (
-            <div key={card.id}>
-              <CardPreview
-                card={card}
-                accent="world"
-                actions={
-                  <button
-                    type="button"
-                    className="ghost-button"
-                    onClick={(event) => {
-                      event.preventDefault()
-                      event.stopPropagation()
-                      removeWorldCard(card.id)
-                    }}
-                  >
-                    Törlés
-                  </button>
+            </label>
+            <label>
+              Életerő
+              <input
+                type="number"
+                min={1}
+                max={100}
+                value={standardForm.health}
+                onChange={(event) =>
+                  setStandardForm((prev) => ({ ...prev, health: event.target.value }))
                 }
               />
-            </div>
-          ))}
+            </label>
+            <label>
+              Típus
+              <select
+                value={standardForm.element}
+                onChange={(event) =>
+                  setStandardForm((prev) => ({
+                    ...prev,
+                    element: event.target.value as WorldCard['element'],
+                  }))
+                }
+              >
+                {CARD_TYPES.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button type="submit">Kártya hozzáadása</button>
+          </form>
         </div>
-      </div>
 
-      <div className="panel-block">
-        <h3>Kazamaták</h3>
-        <form className="form-grid" onSubmit={handleDungeonSubmit}>
-          <label>
-            Név
-            <input
-              value={dungeonForm.name}
-              onChange={(event) =>
-                setDungeonForm((prev) => ({ ...prev, name: event.target.value }))
-              }
-              maxLength={32}
-            />
-          </label>
-          <label>
-            Típus
-            <select
-              value={dungeonForm.type}
-              onChange={(event) =>
-                handleDungeonTypeChange(event.target.value as DungeonType)
-              }
-            >
-              <option value="encounter">Egyszerű találkozás</option>
-              <option value="minor">Kis kazamata</option>
-              <option value="major">Nagy kazamata</option>
-            </select>
-          </label>
-          <div className="dungeon-grid">
-            {dungeonForm.cardOrder.map((cardId, index) => {
-              const req = DUNGEON_REQUIREMENTS[dungeonForm.type]
-              const isLeaderSlot = req.leader > 0 && index >= req.standard
-              const options = isLeaderSlot ? leaderCards : standardCards
-              const taken = new Set(
-                dungeonForm.cardOrder.filter((id, position) => id && position !== index)
-              )
-              return (
-                <label key={index}>
-                  {isLeaderSlot ? 'Vezér' : `Kártya ${index + 1}`}
-                  <select
-                    value={cardId}
-                    onChange={(event) => handleDungeonCardChange(index, event.target.value)}
-                  >
-                    <option value="">Válassz...</option>
-                    {options.map((card) => (
-                      <option
-                        key={card.id}
-                        value={card.id}
-                        disabled={!isLeaderSlot && taken.has(card.id)}
-                      >
-                        {card.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              )
-            })}
+        <div className="panel-block">
+          <h3>Új vezérkártya</h3>
+          <form className="form-grid" onSubmit={handleLeaderSubmit}>
+            <label>
+              Alap kártya
+              <select
+                value={leaderForm.baseCardId}
+                onChange={(event) =>
+                  setLeaderForm((prev) => ({ ...prev, baseCardId: event.target.value }))
+                }
+              >
+                <option value="">Válassz...</option>
+                {standardCards.map((card) => (
+                  <option key={card.id} value={card.id}>
+                    {card.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Név
+              <input
+                value={leaderForm.name}
+                onChange={(event) =>
+                  setLeaderForm((prev) => ({ ...prev, name: event.target.value }))
+                }
+                maxLength={16}
+              />
+            </label>
+            <label>
+              Erősítési mód
+              <select
+                value={leaderForm.mode}
+                onChange={(event) =>
+                  setLeaderForm((prev) => ({
+                    ...prev,
+                    mode: event.target.value as LeaderCardForm['mode'],
+                  }))
+                }
+              >
+                <option value="double-damage">Sebzés duplázás</option>
+                <option value="double-health">Életerő duplázás</option>
+              </select>
+            </label>
+            <button type="submit">Vezér létrehozása</button>
+          </form>
+        </div>
+
+        <div className="panel-block">
+          <h3>Sima kártyák</h3>
+          <div className="card-toggle-grid">
+            {standardCards.length === 0 && <p>Még nincs egy sima kártya sem.</p>}
+            {standardCards.map((card) => (
+              <CardPreview
+                key={card.id}
+                card={card}
+                accent="world"
+                onDelete={() => requestWorldCardRemoval(card)}
+              />
+            ))}
           </div>
-          <button type="submit">Kazamata hozzáadása</button>
-        </form>
+        </div>
 
-        <ul className="dungeon-list">
-          {environment.dungeons.map((dungeon) => (
-            <li key={dungeon.id}>
-              <div>
-                <strong>{dungeon.name}</strong> ({dungeon.type})
-                <p>
-                  Kártyasorrend: {dungeon.cardOrder
-                    .map((id) => environment.worldCards.find((card) => card.id === id)?.name ?? 'Ismeretlen')
-                    .join(' > ')}
-                </p>
-              </div>
-              <button type="button" onClick={() => removeDungeon(dungeon.id)}>
-                Törlés
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
+        <div className="panel-block">
+          <h3>Vezérkártyák</h3>
+          <div className="card-toggle-grid">
+            {leaderCards.length === 0 && <p>Még nincs egy vezérkártya sem.</p>}
+            {leaderCards.map((card) => (
+              <CardPreview
+                key={card.id}
+                card={card}
+                accent="world"
+                onDelete={() => requestWorldCardRemoval(card)}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="panel-block">
+          <h3>Kazamaták</h3>
+          <form className="form-grid" onSubmit={handleDungeonSubmit}>
+            <label>
+              Név
+              <input
+                value={dungeonForm.name}
+                onChange={(event) =>
+                  setDungeonForm((prev) => ({ ...prev, name: event.target.value }))
+                }
+                maxLength={32}
+              />
+            </label>
+            <label>
+              Típus
+              <select
+                value={dungeonForm.type}
+                onChange={(event) =>
+                  handleDungeonTypeChange(event.target.value as DungeonType)
+                }
+              >
+                <option value="encounter">Egyszerű találkozás</option>
+                <option value="minor">Kis kazamata</option>
+                <option value="major">Nagy kazamata</option>
+              </select>
+            </label>
+            <div className="dungeon-grid">
+              {dungeonForm.cardOrder.map((cardId, index) => {
+                const req = DUNGEON_REQUIREMENTS[dungeonForm.type]
+                const isLeaderSlot = req.leader > 0 && index >= req.standard
+                const options = isLeaderSlot ? leaderCards : standardCards
+                const taken = new Set(
+                  dungeonForm.cardOrder.filter((id, position) => id && position !== index)
+                )
+                return (
+                  <label key={index}>
+                    {isLeaderSlot ? 'Vezér' : `Kártya ${index + 1}`}
+                    <select
+                      value={cardId}
+                      onChange={(event) => handleDungeonCardChange(index, event.target.value)}
+                    >
+                      <option value="">Válassz...</option>
+                      {options.map((card) => (
+                        <option
+                          key={card.id}
+                          value={card.id}
+                          disabled={!isLeaderSlot && taken.has(card.id)}
+                        >
+                          {card.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )
+              })}
+            </div>
+            <button type="submit">Kazamata hozzáadása</button>
+          </form>
+
+          <ul className="dungeon-list">
+            {environment.dungeons.map((dungeon) => (
+              <li key={dungeon.id}>
+                <div>
+                  <strong>{dungeon.name}</strong> ({dungeon.type})
+                  <p>
+                    Kártyasorrend: {dungeon.cardOrder
+                      .map((id) => environment.worldCards.find((card) => card.id === id)?.name ?? 'Ismeretlen')
+                      .join(' > ')}
+                  </p>
+                </div>
+                <button type="button" onClick={() => removeDungeon(dungeon.id)}>
+                  Törlés
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+      <ConfirmDialog
+        open={Boolean(cardPendingRemoval)}
+        title="Kártya törlése"
+        description={
+          cardPendingRemoval
+            ? `Biztosan törlöd a "${cardPendingRemoval.name}" kártyát? Ez a művelet nem visszavonható.`
+            : ''
+        }
+        confirmLabel="Kártya törlése"
+        cancelLabel="Mégse"
+        onCancel={cancelWorldCardRemoval}
+        onConfirm={confirmWorldCardRemoval}
+      />
+    </>
   )
 }
