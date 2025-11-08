@@ -1207,11 +1207,11 @@
   }
 
   .environment-sidebar {
-    order: 2;
+    order: 1;
   }
 
   .workspace {
-    order: 1;
+    order: 2;
   }
 
   .card-stack {
