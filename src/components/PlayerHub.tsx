@@ -6,6 +6,7 @@ import type {
   GameEnvironment,
   PlayerProfile,
 } from '../types'
+import { DUNGEON_TYPE_NAMES } from '../types'
 import { runBattle } from '../utils/battle'
 import { generateId } from '../utils/id'
 import { applyReward, getRewardDescriptor } from '../utils/rewards'
@@ -433,10 +434,11 @@ export function PlayerHub({
 
   return (
     <>
-      {showBattleScene && latestBattle && playerEnvironment && (
+      {showBattleScene && latestBattle && playerEnvironment && selectedPlayer && (
         <BattleScene 
           result={latestBattle} 
           environment={playerEnvironment}
+          playerCards={selectedPlayer.collection}
           onComplete={handleBattleSceneComplete}
         />
       )}
@@ -662,7 +664,7 @@ export function PlayerHub({
               {playerEnvironment.dungeons.map((dungeon) => (
                 <li key={dungeon.id}>
                   <div>
-                    <strong>{dungeon.name}</strong> - {dungeon.type} ({getDeckRequirement(dungeon)} kártya)
+                    <strong>{dungeon.name}</strong> - {DUNGEON_TYPE_NAMES[dungeon.type]} ({getDeckRequirement(dungeon)} kártya)
                     <div className="card-sequence">
                       {dungeon.cardOrder.map((cardId) => (
                         <span key={cardId}>

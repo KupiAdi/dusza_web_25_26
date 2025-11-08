@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { DungeonType, GameEnvironment, WorldCard } from '../types'
+import { DUNGEON_TYPE_NAMES } from '../types'
 import { CardPreview } from './CardPreview'
 import { ConfirmDialog } from './ConfirmDialog'
 import { generateId } from '../utils/id'
@@ -560,7 +561,7 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
             {environment.dungeons.map((dungeon) => (
               <li key={dungeon.id}>
                 <div>
-                  <strong>{dungeon.name}</strong> ({dungeon.type})
+                  <strong>{dungeon.name}</strong> ({DUNGEON_TYPE_NAMES[dungeon.type]})
                   <p>
                     Kártyasorrend: {dungeon.cardOrder
                       .map((id) => environment.worldCards.find((card) => card.id === id)?.name ?? 'Ismeretlen')

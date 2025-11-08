@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react'
-import type { BattleResult, GameEnvironment } from '../types'
+import type { BattleResult, GameEnvironment, PlayerCardState } from '../types'
 import { CardPreview } from './CardPreview'
 import './BattleScene.css'
 
 interface BattleSceneProps {
   result: BattleResult
   environment: GameEnvironment
+  playerCards: PlayerCardState[]
   onComplete: () => void
 }
 
 type AnimationPhase = 'intro' | 'round-setup' | 'clash' | 'round-result' | 'complete'
 
-export function BattleScene({ result, environment, onComplete }: BattleSceneProps) {
+export function BattleScene({ result, environment, playerCards, onComplete }: BattleSceneProps) {
   const [currentRoundIndex, setCurrentRoundIndex] = useState(0)
   const [phase, setPhase] = useState<AnimationPhase>('intro')
   const [playerScore, setPlayerScore] = useState(0)
@@ -89,6 +90,11 @@ export function BattleScene({ result, environment, onComplete }: BattleSceneProp
     return null
   }
 
+  // Get the actual player card stats from their collection
+  const playerCardState = playerCards.find((c) => c.cardId === currentRound.playerCardId)
+  const playerDamage = playerCardState?.damage ?? playerCard.damage
+  const playerHealth = playerCardState?.health ?? playerCard.health
+
   const dungeon = environment.dungeons.find((d) => d.id === result.dungeonId)
 
   return (
@@ -165,7 +171,12 @@ export function BattleScene({ result, environment, onComplete }: BattleSceneProp
           <div className="battle-arena">
             {/* Player Card */}
             <div className={`battle-card battle-card--player ${phase === 'clash' ? 'is-attacking' : ''} ${phase === 'round-result' && currentRound.winner === 'player' ? 'is-winner' : ''} ${phase === 'round-result' && currentRound.winner === 'dungeon' ? 'is-loser' : ''}`}>
-              <CardPreview card={playerCard} accent="collection" />
+              <CardPreview 
+                card={playerCard} 
+                damage={playerDamage}
+                health={playerHealth}
+                accent="collection" 
+              />
             </div>
 
             {/* VS Indicator */}

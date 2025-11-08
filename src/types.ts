@@ -3,6 +3,14 @@ export type Element = (typeof ELEMENTS)[number]
 
 export type CardKind = 'standard' | 'leader'
 
+export type DungeonType = 'encounter' | 'minor' | 'major'
+
+export const DUNGEON_TYPE_NAMES: Record<DungeonType, string> = {
+  encounter: 'Egyszerű találkozás',
+  minor: 'Kis kazamata',
+  major: 'Nagy kazamata',
+}
+
 export interface WorldCard {
   id: string
   name: string
@@ -13,8 +21,6 @@ export interface WorldCard {
   sourceCardId?: string
   backgroundImage?: string
 }
-
-export type DungeonType = 'encounter' | 'minor' | 'major'
 
 export interface Dungeon {
   id: string
