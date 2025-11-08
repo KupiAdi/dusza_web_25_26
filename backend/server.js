@@ -643,7 +643,7 @@ app.post('/api/generate-image', authMiddleware, async (req, res) => {
 
     // URL készítése - a szóközöket és speciális karaktereket enkódoljuk
     const encodedPrompt = encodeURIComponent(prompt);
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1920&height=1080`;
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1920`;
 
     console.log(`Kép generálása: "${prompt}"`);
     console.log(`URL: ${imageUrl}`);

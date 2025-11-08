@@ -3,14 +3,15 @@ import type { WorldCard } from '../types'
 
 const ELEMENT_THEME: Record<WorldCard['element'], {
   label: string
+  emoji: string
   primary: string
   secondary: string
   glow: string
 }> = {
-  fire: { label: 'Tűz', primary: '#f97316', secondary: '#ef4444', glow: 'rgba(239, 68, 68, 0.35)' },
-  earth: { label: 'Föld', primary: '#16a34a', secondary: '#166534', glow: 'rgba(34, 197, 94, 0.3)' },
-  water: { label: 'Víz', primary: '#0ea5e9', secondary: '#1e3a8a', glow: 'rgba(14, 165, 233, 0.3)' },
-  air: { label: 'Levegő', primary: '#a855f7', secondary: '#6366f1', glow: 'rgba(99, 102, 241, 0.3)' },
+  fire: { label: 'Tűz', emoji: '🔥', primary: '#f97316', secondary: '#ef4444', glow: 'rgba(239, 68, 68, 0.35)' },
+  earth: { label: 'Föld', emoji: '🌍', primary: '#16a34a', secondary: '#166534', glow: 'rgba(34, 197, 94, 0.3)' },
+  water: { label: 'Víz', emoji: '💧', primary: '#0ea5e9', secondary: '#1e3a8a', glow: 'rgba(14, 165, 233, 0.3)' },
+  air: { label: 'Levegő', emoji: '💨', primary: '#a855f7', secondary: '#6366f1', glow: 'rgba(99, 102, 241, 0.3)' },
 }
 
 const KIND_BADGE: Record<WorldCard['kind'], string> = {
@@ -67,46 +68,46 @@ export function CardPreview({
 
   return (
     <article className={classNames} style={style} data-card-kind={card.kind}>
-      <header className="card-preview__header">
-        <div className="element-marker" aria-label={`Elem: ${theme.label}`}>
-          <span>{theme.label.slice(0, 1)}</span>
-        </div>
-        <div className="card-preview__meta">
-          <h5 title={card.name}>{card.name}</h5>
-          <span className="card-badge">{KIND_BADGE[card.kind]}</span>
-        </div>
-      </header>
+      <div className="card-preview__illustration" style={illustrationStyle}>
+        {!card.backgroundImage && (
+          <>
+            <div className="card-preview__shape"></div>
+            <div className="card-preview__shape card-preview__shape--accent"></div>
+          </>
+        )}
+        
+        <div className="card-preview__overlay">
+          <header className="card-preview__header">
+            {card.kind === 'leader' && (
+              <span className="card-badge card-badge--leader">👑</span>
+            )}
+            <div className="card-preview__stats-compact">
+              <div className="stat-item">
+                <span className="stat-value">{health ?? card.health}</span>
+                <span className="stat-emoji">❤️</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-value">{damage ?? card.damage}</span>
+                <span className="stat-emoji">⚔️</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-value">{theme.label}</span>
+                <span className="stat-emoji">{theme.emoji}</span>
+              </div>
+            </div>
+          </header>
 
-      <section className="card-preview__body">
-        <div className="card-preview__illustration" style={illustrationStyle}>
-          {!card.backgroundImage && (
-            <>
-              <div className="card-preview__shape"></div>
-              <div className="card-preview__shape card-preview__shape--accent"></div>
-            </>
-          )}
+          <footer className="card-preview__name-footer">
+            <h5 title={card.name}>{card.name}</h5>
+          </footer>
         </div>
-        <dl className="card-preview__stats">
-          <div>
-            <dt>Sebzés</dt>
-            <dd>{damage ?? card.damage}</dd>
-          </div>
-          <div>
-            <dt>Életerő</dt>
-            <dd>{health ?? card.health}</dd>
-          </div>
-          <div>
-            <dt>Elem</dt>
-            <dd>{theme.label}</dd>
-          </div>
-        </dl>
-      </section>
+      </div>
 
       {(actions || footer) && (
-        <footer className="card-preview__footer">
+        <div className="card-preview__footer">
           {actions && <div className="card-preview__actions">{actions}</div>}
           {footer && <div className="card-preview__extra">{footer}</div>}
-        </footer>
+        </div>
       )}
     </article>
   )
