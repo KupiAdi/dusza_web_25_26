@@ -52,15 +52,15 @@ function AppShell() {
     event.preventDefault()
     const trimmed = newEnvironmentName.trim()
     if (!trimmed) {
-      notify('Adj nevet az uj jatekkornyezetnek.', 'error')
+      notify('Adj nevet az új játékkörnyezetnek.', 'error')
       return
     }
     if (trimmed.length > 32) {
-      notify('A kornyezet neve legfeljebb 32 karakter lehet.', 'error')
+      notify('A környezet neve legfeljebb 32 karakter lehet.', 'error')
       return
     }
     if (environments.some((env) => env.name.toLowerCase() === trimmed.toLowerCase())) {
-      notify('Ilyen nevu kornyezet mar letezik.', 'error')
+      notify('Ilyen nevű környezet már létezik.', 'error')
       return
     }
 
@@ -76,9 +76,9 @@ function AppShell() {
       await addEnvironment(environment)
       setSelectedEnvironmentId(environment.id)
       setNewEnvironmentName('')
-      notify('Uj jatekkornyezet hozzaadva.')
+      notify('Új játékkörnyezet hozzáadva.')
     } catch (error: any) {
-      notify(error.message || 'Hiba tortent a kornyezet letrehozasa soran', 'error')
+      notify(error.message || 'Hiba történt a környezet létrehozása során', 'error')
     }
   }
 
@@ -86,19 +86,19 @@ function AppShell() {
     try {
       await updateEnvironment(updatedEnvironment)
     } catch (error: any) {
-      notify(error.message || 'Hiba tortent a kornyezet mentese soran', 'error')
+      notify(error.message || 'Hiba történt a környezet mentése során', 'error')
     }
   }
 
   async function handleEnvironmentRemoval(environmentId: string) {
-    if (!confirm('Biztosan torlod ezt a jatekkornyezetet?')) {
+    if (!confirm('Biztosan törlöd ezt a játékkörnyezetet?')) {
       return
     }
     try {
       await removeEnvironment(environmentId)
-      notify('A kornyezet torolve lett.')
+      notify('A környezet törölve lett.')
     } catch (error: any) {
-      notify(error.message || 'Hiba tortent a kornyezet torlese soran', 'error')
+      notify(error.message || 'Hiba történt a környezet törlése során', 'error')
     }
   }
 
@@ -116,7 +116,7 @@ function AppShell() {
       <header className="app-header">
         <div>
           <h1>Damareen</h1>
-          <p>Gyujtogetos fantasy kartya kaland React alapokon.</p>
+          <p>Gyűjtögetős fantasy kártyakaland React alapokon.</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <span style={{ opacity: 0.9 }}>Üdv, {user?.username}!</span>
@@ -144,14 +144,14 @@ function AppShell() {
           className={activeTab === 'player' ? 'active' : ''}
           onClick={() => setActiveTab('player')}
         >
-          Jatekos mod
+          Játékos mód
         </button>
         <button
           type="button"
           className={activeTab === 'master' ? 'active' : ''}
           onClick={() => setActiveTab('master')}
         >
-          Jatekmester mod
+          Játékmester mód
         </button>
       </nav>
 
@@ -163,17 +163,17 @@ function AppShell() {
 
       <main className="app-main">
         <aside className="environment-sidebar">
-          <h2>Kornyezetek</h2>
+          <h2>Környezetek</h2>
           <form className="form-grid" onSubmit={handleCreateEnvironment}>
             <label>
-              Nev
+              Név
               <input
                 value={newEnvironmentName}
                 onChange={(event) => setNewEnvironmentName(event.target.value)}
                 maxLength={32}
               />
             </label>
-            <button type="submit">Uj kornyezet</button>
+            <button type="submit">Új környezet</button>
           </form>
 
           <ul className="environment-list">
@@ -187,14 +187,14 @@ function AppShell() {
                   {environment.name}
                 </button>
                 <span className="env-meta">
-                  {environment.worldCards.length} kartya, {environment.dungeons.length} kazamata
+                  {environment.worldCards.length} kártya, {environment.dungeons.length} kazamata
                 </span>
                 <button
                   type="button"
                   className="link-button"
                   onClick={() => handleEnvironmentRemoval(environment.id)}
                 >
-                  Torles
+                  Törlés
                 </button>
               </li>
             ))}
@@ -216,7 +216,7 @@ function AppShell() {
           )}
 
           {activeTab === 'master' && !activeEnvironment && (
-            <p>Adj hozza egy jatekkornyezetet a szerkeszteshez.</p>
+            <p>Adj hozzá egy játékkörnyezetet a szerkesztéshez.</p>
           )}
         </section>
       </main>

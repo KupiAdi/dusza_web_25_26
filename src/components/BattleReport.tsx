@@ -12,10 +12,10 @@ function resolveName(environment: GameEnvironment, cardId: string) {
 export function BattleReport({ result, environment }: BattleReportProps) {
   return (
     <section className="panel-block battle-report">
-      <h3>Harc jelentese</h3>
+      <h3>Harc jelentése</h3>
       <p className="battle-summary">
-        {result.playerVictory ? 'A jatekos gyozott.' : 'A kazamata diadalmaskodott.'}{' '}
-        {result.playerWins} gyozelem / {result.dungeonWins} vereseg
+        {result.playerVictory ? 'A játékos győzött.' : 'A kazamata diadalmaskodott.'}{' '}
+        {result.playerWins} győzelem / {result.dungeonWins} vereség
       </p>
       <ol className="round-list">
         {result.rounds.map((round, index) => {
@@ -28,7 +28,7 @@ export function BattleReport({ result, environment }: BattleReportProps) {
             >
               <div className="round-item__header">
                 <span className="round-index">#{round.round}</span>
-                <span className="round-outcome">{round.winner === 'player' ? 'Jatekos' : 'Kazamata'}</span>
+                <span className="round-outcome">{round.winner === 'player' ? 'Játékos' : 'Kazamata'}</span>
               </div>
               <div className="round-item__matchup">
                 <span>{resolveName(environment, round.playerCardId)}</span>
@@ -41,7 +41,7 @@ export function BattleReport({ result, environment }: BattleReportProps) {
         })}
       </ol>
       <p className="timestamp">
-        Lejatszas ideje: {new Date(result.timestamp).toLocaleString()}
+        Lejátszás ideje: {new Date(result.timestamp).toLocaleString()}
       </p>
     </section>
   )

@@ -138,7 +138,7 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
       return
     }
     setDeckDraft((prev) => prev.filter((_, idx) => idx !== fromIndex))
-    showMessage('Kartya eltavolitva a paklibol.')
+    showMessage('Kártya eltávolítva a pakliból.')
     resetDragState()
   }
 
@@ -169,7 +169,7 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
 
     if (source === 'collection') {
       if (deckDraft.some((entry) => entry.cardId === cardId)) {
-        showMessage('Ez a kartya mar a pakliban van.', 'error')
+        showMessage('Ez a kártya már a pakliban van.', 'error')
         resetDragState()
         return
       }
@@ -237,11 +237,11 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
 
   function runFight(dungeon: Dungeon) {
     if (!selectedPlayer || !playerEnvironment) {
-      showMessage('Valassz ki egy jatekost es kornyezetet a harchoz.', 'error')
+      showMessage('Válassz ki egy játékost és környezetet a harchoz.', 'error')
       return
     }
     if (deckDraft.length !== dungeon.cardOrder.length) {
-      showMessage(`A pakli merete ${dungeon.cardOrder.length} kartya kell legyen.`, 'error')
+      showMessage(`A pakli mérete ${dungeon.cardOrder.length} kártya kell legyen.`, 'error')
       return
     }
 
@@ -259,9 +259,9 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
 
     if (battle.playerVictory) {
       setPendingReward({ type: dungeon.type, dungeonName: dungeon.name, battle })
-      showMessage('Gyozelem! Valassz kartya jutalmat.')
+      showMessage('Győzelem! Válassz kártyajutalmat.')
     } else {
-      showMessage('A harc elveszett. Probald ujra!', 'error')
+      showMessage('A harc elveszett. Próbáld újra!', 'error')
     }
   }
 
@@ -278,18 +278,18 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
   function handleCreatePlayer(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!newPlayerForm.name.trim()) {
-      showMessage('Add meg a jatekos nevet.', 'error')
+      showMessage('Add meg a játékos nevét.', 'error')
       return
     }
     const environment = environments.find((env) => env.id === newPlayerForm.environmentId)
     if (!environment) {
-      showMessage('Valassz egy jatekkornyezetet.', 'error')
+      showMessage('Válassz egy játékkörnyezetet.', 'error')
       return
     }
 
     const collection = prepareInitialCollection(environment)
     if (collection.length === 0) {
-      showMessage('A kivalasztott kornyezethez meg nincs kezdo gyujtemeny.', 'error')
+      showMessage('A kiválasztott környezethez még nincs kezdő gyűjtemény.', 'error')
       return
     }
 
@@ -305,19 +305,19 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
     onCreatePlayer(profile)
     setNewPlayerForm({ name: '', environmentId: environment.id })
     setSelectedPlayerId(profile.id)
-    showMessage('Jatekos letrehozva.')
+    showMessage('Játékos létrehozva.')
   }
 
   return (
     <section className="panel">
-      <h2>Jatekos kozpont</h2>
+      <h2>Játékos központ</h2>
       {message && <div className={`feedback feedback--${message.type}`}>{message.text}</div>}
 
       <div className="panel-block">
-        <h3>Uj jatek inditasa</h3>
+        <h3>Új játék indítása</h3>
         <form className="form-grid" onSubmit={handleCreatePlayer}>
           <label>
-            Nev
+            Név
             <input
               value={newPlayerForm.name}
               onChange={(event) => setNewPlayerForm((prev) => ({ ...prev, name: event.target.value }))}
@@ -325,7 +325,7 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
             />
           </label>
           <label>
-            Kornyezet
+            Környezet
             <select
               value={newPlayerForm.environmentId}
               onChange={(event) => setNewPlayerForm((prev) => ({ ...prev, environmentId: event.target.value }))}
@@ -337,20 +337,20 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
               ))}
             </select>
           </label>
-          <button type="submit">Jatek letrehozasa</button>
+          <button type="submit">Játék létrehozása</button>
         </form>
       </div>
 
       {selectedPlayer && playerEnvironment && (
         <div className="panel-block">
-          <h3>Aktiv jatekos: {selectedPlayer.name}</h3>
-          <p>Kornyezet: {playerEnvironment.name}</p>
+          <h3>Aktív játékos: {selectedPlayer.name}</h3>
+          <p>Környezet: {playerEnvironment.name}</p>
 
           <section className="sub-panel">
-            <h4>Pakli szerkesztes</h4>
+            <h4>Pakli szerkesztés</h4>
             <div className="deck-builder">
               <div className="deck-column">
-                <h5>Elerheto kartyak</h5>
+                <h5>Elérhető kártyák</h5>
                 <div
                   className="card-grid card-grid--compact"
                   onDragOver={handleCollectionDragOver}
@@ -419,7 +419,7 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
                           health={playerCardState.health}
                           accent="deck"
                           highlight
-                          footer={<span className="card-footnote">Pozicio {index + 1}</span>}
+                          footer={<span className="card-footnote">Pozíció {index + 1}</span>}
                         />
                       </div>
                     )
@@ -438,19 +438,19 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
                   </div>
                 </div>
                 <button type="button" onClick={saveDeck} className="primary-button">
-                  Pakli mentese
+                  Pakli mentése
                 </button>
               </div>
             </div>
           </section>
 
           <section className="sub-panel">
-            <h4>Kivalasztott kazamatak</h4>
+            <h4>Kiválasztott kazamaták</h4>
             <ul className="dungeon-list">
               {playerEnvironment.dungeons.map((dungeon) => (
                 <li key={dungeon.id}>
                   <div>
-                    <strong>{dungeon.name}</strong> - {dungeon.type} ({getDeckRequirement(dungeon)} kartya)
+                    <strong>{dungeon.name}</strong> - {dungeon.type} ({getDeckRequirement(dungeon)} kártya)
                     <div className="card-sequence">
                       {dungeon.cardOrder.map((cardId) => (
                         <span key={cardId}>
@@ -459,7 +459,7 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
                       ))}
                     </div>
                   </div>
-                  <button type="button" onClick={() => runFight(dungeon)}>Harc inditasa</button>
+                  <button type="button" onClick={() => runFight(dungeon)}>Harc indítása</button>
                 </li>
               ))}
             </ul>
@@ -467,7 +467,7 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
 
           {pendingReward && (
             <section className="sub-panel">
-              <h4>Jutalom valasztasa ({pendingReward.dungeonName} - {getRewardDescriptor(pendingReward.type)})</h4>
+            <h4>Jutalom választása ({pendingReward.dungeonName} - {getRewardDescriptor(pendingReward.type)})</h4>
               <div className="card-grid card-grid--reward">
                 {selectedPlayer.collection.map((card) => {
                   const worldCard = playerEnvironment.worldCards.find((item) => item.id === card.cardId)
@@ -500,11 +500,11 @@ export function PlayerHub({ environments, players, onCreatePlayer, onUpdatePlaye
           )}
 
           <section className="sub-panel">
-            <h4>Csata tortenelem</h4>
+            <h4>Csatatörténet</h4>
             <ul className="history-list">
               {selectedPlayer.battleHistory.map((battle) => (
                 <li key={battle.timestamp}>
-                  {new Date(battle.timestamp).toLocaleString()} - {playerEnvironment.dungeons.find((d) => d.id === battle.dungeonId)?.name ?? 'Ismeretlen kazamata'} - {battle.playerVictory ? 'Gyozelem' : 'Vereseg'}
+                  {new Date(battle.timestamp).toLocaleString()} - {playerEnvironment.dungeons.find((d) => d.id === battle.dungeonId)?.name ?? 'Ismeretlen kazamata'} - {battle.playerVictory ? 'Győzelem' : 'Vereség'}
                 </li>
               ))}
             </ul>

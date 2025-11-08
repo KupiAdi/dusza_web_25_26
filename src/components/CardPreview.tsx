@@ -7,15 +7,15 @@ const ELEMENT_THEME: Record<WorldCard['element'], {
   secondary: string
   glow: string
 }> = {
-  fire: { label: 'Fire', primary: '#f97316', secondary: '#ef4444', glow: 'rgba(239, 68, 68, 0.35)' },
-  earth: { label: 'Earth', primary: '#16a34a', secondary: '#166534', glow: 'rgba(34, 197, 94, 0.3)' },
-  water: { label: 'Water', primary: '#0ea5e9', secondary: '#1e3a8a', glow: 'rgba(14, 165, 233, 0.3)' },
-  air: { label: 'Air', primary: '#a855f7', secondary: '#6366f1', glow: 'rgba(99, 102, 241, 0.3)' },
+  fire: { label: 'Tűz', primary: '#f97316', secondary: '#ef4444', glow: 'rgba(239, 68, 68, 0.35)' },
+  earth: { label: 'Föld', primary: '#16a34a', secondary: '#166534', glow: 'rgba(34, 197, 94, 0.3)' },
+  water: { label: 'Víz', primary: '#0ea5e9', secondary: '#1e3a8a', glow: 'rgba(14, 165, 233, 0.3)' },
+  air: { label: 'Levegő', primary: '#a855f7', secondary: '#6366f1', glow: 'rgba(99, 102, 241, 0.3)' },
 }
 
 const KIND_BADGE: Record<WorldCard['kind'], string> = {
-  standard: 'Standard',
-  leader: 'Leader',
+  standard: 'Sima',
+  leader: 'Vezér',
 }
 
 export type CardPreviewAccent = 'world' | 'collection' | 'deck' | 'dungeon' | 'reward'
@@ -68,7 +68,7 @@ export function CardPreview({
   return (
     <article className={classNames} style={style} data-card-kind={card.kind}>
       <header className="card-preview__header">
-        <div className="element-marker" aria-label={`Element ${theme.label}`}>
+        <div className="element-marker" aria-label={`Elem: ${theme.label}`}>
           <span>{theme.label.slice(0, 1)}</span>
         </div>
         <div className="card-preview__meta">
@@ -88,15 +88,15 @@ export function CardPreview({
         </div>
         <dl className="card-preview__stats">
           <div>
-            <dt>Damage</dt>
+            <dt>Sebzés</dt>
             <dd>{damage ?? card.damage}</dd>
           </div>
           <div>
-            <dt>Health</dt>
+            <dt>Életerő</dt>
             <dd>{health ?? card.health}</dd>
           </div>
           <div>
-            <dt>Element</dt>
+            <dt>Elem</dt>
             <dd>{theme.label}</dd>
           </div>
         </dl>
