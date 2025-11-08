@@ -1,84 +1,99 @@
-import { useState } from 'react';
-import { useAuth } from '../state/AuthContext';
+import { useState } from 'react'
+import { useAuth } from '../state/AuthContext'
+import { useTranslation } from '../state/LanguageContext'
+import { LanguageSelector } from './LanguageSelector'
 
-type AuthMode = 'login' | 'register';
+type AuthMode = 'login' | 'register'
 
 type FieldErrors = {
-  username?: string;
-  email?: string;
-  password?: string;
-};
+  username?: string
+  email?: string
+  password?: string
+}
 
 export function Auth() {
-  const [mode, setMode] = useState<AuthMode>('login');
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [mode, setMode] = useState<AuthMode>('login')
+  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
 
-  const { login, register } = useAuth();
+  const { login, register } = useAuth()
+  const { t } = useTranslation()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setError(null)
 
-    const newErrors: FieldErrors = {};
+    const newErrors: FieldErrors = {}
     if (!username.trim()) {
-      newErrors.username = 'Kérjük, töltse ki a mezőt';
+      newErrors.username = t('validation.required')
     }
 
     if (mode === 'register' && !email.trim()) {
-      newErrors.email = 'Kérjük, töltse ki a mezőt';
+      newErrors.email = t('validation.required')
     }
 
     if (!password) {
-      newErrors.password = 'Kérjük, töltse ki a mezőt';
+      newErrors.password = t('validation.required')
     } else if (password.length < 6) {
-      newErrors.password = 'Legalább 6 karakteres jelszó szükséges';
+      newErrors.password = t('validation.passwordMin')
     }
 
     if (Object.keys(newErrors).length > 0) {
-      setFieldErrors(newErrors);
-      return;
+      setFieldErrors(newErrors)
+      return
     }
 
-    setFieldErrors({});
-    setIsLoading(true);
+    setFieldErrors({})
+    setIsLoading(true)
 
     try {
       if (mode === 'login') {
-        await login(username, password);
+        await login(username, password)
       } else {
         if (!email) {
-          setError('Email cím megadása kötelező');
-          setIsLoading(false);
-          return;
+          setError(t('validation.emailRequired'))
+          setIsLoading(false)
+          return
         }
-        await register(username, email, password);
+        await register(username, email, password)
       }
     } catch (err: any) {
-      setError(err.message || 'Hiba történt');
+      setError(err.message || t('auth.errors.generic'))
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const toggleMode = () => {
-    setMode(mode === 'login' ? 'register' : 'login');
-    setError(null);
-    setFieldErrors({});
-    setPassword('');
-  };
+    setMode(mode === 'login' ? 'register' : 'login')
+    setError(null)
+    setFieldErrors({})
+    setPassword('')
+  }
+
+  const submitLabel =
+    mode === 'login' ? t('auth.actions.login') : t('auth.actions.register')
 
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h1>Damareen</h1>
-        <p className="auth-subtitle">
-          Gyűjtögetős fantasy kártya kaland
-        </p>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '0.5rem',
+            width: '100%',
+          }}
+        >
+          <h1>{t('auth.title')}</h1>
+          <LanguageSelector size="small" />
+        </div>
+        <p className="auth-subtitle">{t('auth.subtitle')}</p>
 
         <div className="auth-tabs">
           <button
@@ -86,14 +101,14 @@ export function Auth() {
             className={mode === 'login' ? 'active' : ''}
             onClick={() => setMode('login')}
           >
-            Bejelentkezés
+            {t('auth.tabs.login')}
           </button>
           <button
             type="button"
             className={mode === 'register' ? 'active' : ''}
             onClick={() => setMode('register')}
           >
-            Regisztráció
+            {t('auth.tabs.register')}
           </button>
         </div>
 
@@ -101,15 +116,15 @@ export function Auth() {
           {error && <div className="auth-error">{error}</div>}
 
           <div className="form-field">
-            <label htmlFor="username">Felhasználónév</label>
+            <label htmlFor="username">{t('auth.fields.username')}</label>
             <input
               id="username"
               type="text"
               value={username}
-              onChange={(e) => {
-                setUsername(e.target.value);
+              onChange={(event) => {
+                setUsername(event.target.value)
                 if (fieldErrors.username) {
-                  setFieldErrors((prev) => ({ ...prev, username: undefined }));
+                  setFieldErrors((prev) => ({ ...prev, username: undefined }))
                 }
               }}
               autoComplete="username"
@@ -126,15 +141,15 @@ export function Auth() {
 
           {mode === 'register' && (
             <div className="form-field">
-              <label htmlFor="email">Email cím</label>
+              <label htmlFor="email">{t('auth.fields.email')}</label>
               <input
                 id="email"
                 type="email"
                 value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
+                onChange={(event) => {
+                  setEmail(event.target.value)
                   if (fieldErrors.email) {
-                    setFieldErrors((prev) => ({ ...prev, email: undefined }));
+                    setFieldErrors((prev) => ({ ...prev, email: undefined }))
                   }
                 }}
                 autoComplete="email"
@@ -151,15 +166,15 @@ export function Auth() {
           )}
 
           <div className="form-field">
-            <label htmlFor="password">Jelszó</label>
+            <label htmlFor="password">{t('auth.fields.password')}</label>
             <input
               id="password"
               type="password"
               value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
+              onChange={(event) => {
+                setPassword(event.target.value)
                 if (fieldErrors.password) {
-                  setFieldErrors((prev) => ({ ...prev, password: undefined }));
+                  setFieldErrors((prev) => ({ ...prev, password: undefined }))
                 }
               }}
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
@@ -172,44 +187,34 @@ export function Auth() {
                 {fieldErrors.password}
               </span>
             ) : (
-              mode === 'register' && (
-                <small>Legalább 6 karakteres jelszó szükséges</small>
-              )
+              mode === 'register' && <small>{t('auth.hints.passwordLength')}</small>
             )}
           </div>
 
-          <button
-            type="submit"
-            className="auth-submit"
-            disabled={isLoading}
-          >
-            {isLoading
-              ? 'Betöltés...'
-              : mode === 'login'
-              ? 'Bejelentkezés'
-              : 'Regisztráció'}
+          <button type="submit" className="auth-submit" disabled={isLoading}>
+            {isLoading ? t('common.loading') : submitLabel}
           </button>
         </form>
 
         <div className="auth-footer">
           {mode === 'login' ? (
             <p>
-              Még nincs fiókod?{' '}
+              {t('auth.switch.toRegister')}{' '}
               <button type="button" onClick={toggleMode} className="link-button">
-                Regisztrálj most
+                {t('auth.switch.registerCta')}
               </button>
             </p>
           ) : (
             <p>
-              Már van fiókod?{' '}
+              {t('auth.switch.toLogin')}{' '}
               <button type="button" onClick={toggleMode} className="link-button">
-                Jelentkezz be
+                {t('auth.switch.loginCta')}
               </button>
             </p>
           )}
         </div>
       </div>
     </div>
-  );
+  )
 }
 

@@ -6,7 +6,6 @@ import type {
   GameEnvironment,
   PlayerProfile,
 } from '../types'
-import { DUNGEON_TYPE_NAMES } from '../types'
 import { runBattle } from '../utils/battle'
 import { generateId } from '../utils/id'
 import { applyReward } from '../utils/rewards'
@@ -14,6 +13,7 @@ import { BattleReport } from './BattleReport'
 import { BattleScene } from './BattleScene'
 import { CardPreview } from './CardPreview'
 import { ConfirmDialog } from './ConfirmDialog'
+import { useTranslation } from '../state/LanguageContext'
 
 interface PlayerHubProps {
   environments: GameEnvironment[]
@@ -48,6 +48,7 @@ export function PlayerHub({
   defaultPlayerName,
   defaultEnvironmentId,
 }: PlayerHubProps) {
+  const { t } = useTranslation()
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
   const [newGameName, setNewGameName] = useState('')
   const [deckDraft, setDeckDraft] = useState<DeckEntry[]>([])
@@ -203,7 +204,7 @@ export function PlayerHub({
 
     if (source === 'collection') {
       if (deckDraft.some((entry) => entry.cardId === cardId)) {
-        showMessage('Ez a kártya már a pakliban van.', 'error')
+        showMessage(t('player.messages.cardAlreadyInDeck'), 'error')
         resetDragState()
         return
       }
@@ -288,11 +289,11 @@ export function PlayerHub({
 
   function runFight(dungeon: Dungeon) {
     if (!selectedPlayer || !playerEnvironment) {
-      showMessage('Válassz ki egy játékost és játékot a harchoz.', 'error')
+      showMessage(t('player.messages.selectPlayerAndEnvironment'), 'error')
       return
     }
     if (deckDraft.length !== dungeon.cardOrder.length) {
-      showMessage(`A pakli mérete ${dungeon.cardOrder.length} kártya kell legyen.`, 'error')
+      showMessage(t('player.messages.deckSize', { size: dungeon.cardOrder.length }), 'error')
       return
     }
 
@@ -319,9 +320,9 @@ export function PlayerHub({
     }
 
     if (latestBattle.playerVictory) {
-      showMessage('Győzelem! A jutalom alkalmazva lett.')
+      showMessage(t('player.messages.winWithReward'))
     } else {
-      showMessage('A harc elveszett. Próbáld újra!', 'error')
+      showMessage(t('player.messages.lossTryAgain'), 'error')
     }
   }
 
@@ -342,26 +343,26 @@ export function PlayerHub({
   async function handleCreatePlayer() {
     try {
       if (!trimmedNewGameName) {
-        showMessage('Add meg a játékmenet nevét.', 'error')
+        showMessage(t('player.messages.sessionNameRequired'), 'error')
         return
       }
       if (!defaultPlayerName) {
-        showMessage('Nincs bejelentkezett felhasználó.', 'error')
+        showMessage(t('player.messages.noUser'), 'error')
         return
       }
       if (isDuplicateGameName) {
-        showMessage('Ez a játékmenet név már létezik ebben a játékban.', 'error')
+        showMessage(t('player.messages.sessionNameExists'), 'error')
         return
       }
       const environment = environments.find((env) => env.id === defaultEnvironmentId)
       if (!environment) {
-        showMessage('Válassz ki egy játékot a bal oldali menüből.', 'error')
+        showMessage(t('player.messages.selectEnvironment'), 'error')
         return
       }
 
       const collection = prepareInitialCollection(environment)
       if (collection.length === 0) {
-        showMessage('A kiválasztott játékhoz még nincsenek kártyák.', 'error')
+        showMessage(t('player.messages.environmentHasNoCards'), 'error')
         return
       }
 
@@ -377,10 +378,10 @@ export function PlayerHub({
       await onCreatePlayer(profile)
       setNewGameName('')
       setSelectedPlayerId(profile.id)
-      showMessage('Új játékmenet indítva.')
+      showMessage(t('player.messages.sessionCreated'))
     } catch (error: any) {
-      console.error('Hiba a játékmenet létrehozása során:', error)
-      showMessage(error.message || 'Hiba történt a játékmenet létrehozása során', 'error')
+      console.error('Error creating play session:', error)
+      showMessage(error.message || t('player.messages.sessionCreateFailed'), 'error')
     }
   }
 
@@ -406,9 +407,9 @@ export function PlayerHub({
         setSelectedPlayerId(null)
       }
       await onRemovePlayer(playerToRemove.id)
-      showMessage('Játékmenet törölve.')
+      showMessage(t('player.messages.sessionDeleted'))
     } catch (error: any) {
-      showMessage(error?.message || 'Hiba történt a játékmenet törlése során', 'error')
+      showMessage(error?.message || t('player.messages.sessionDeleteFailed'), 'error')
     } finally {
       setIsRemovingPlayer(false)
       setPlayerPendingRemoval(null)
@@ -439,14 +440,14 @@ export function PlayerHub({
       )}
       
       <section className="panel">
-        <h2>Játékos központ</h2>
+        <h2>{t('player.title')}</h2>
         {message && <div className={`feedback feedback--${message.type}`}>{message.text}</div>}
 
       <div className="panel-block">
-        <h3>Játékmenetek</h3>
+        <h3>{t('player.sessions.title')}</h3>
         {playersInSelectedEnvironment.length > 0 && (
           <div>
-            <h4>Meglévő játékmenetek</h4>
+            <h4>{t('player.sessions.listTitle')}</h4>
             <ul style={{ listStyle: 'none', padding: 0 }}>
               {playersInSelectedEnvironment.map((player) => {
                 const env = environments.find((e) => e.id === player.environmentId)
@@ -463,10 +464,10 @@ export function PlayerHub({
                         color: 'white',
                         cursor: 'pointer',
                         flex: 1,
-                        textAlign: 'left'
+                        textAlign: 'left',
                       }}
                     >
-                      <strong>{env?.name || 'Ismeretlen játék'}</strong> - {player.name}
+                      <strong>{env?.name || t('common.unknownGame')}</strong> - {player.name}
                     </button>
                     <button
                       type="button"
@@ -480,11 +481,11 @@ export function PlayerHub({
                         color: 'white',
                         cursor: isRemovingPlayer ? 'not-allowed' : 'pointer',
                         opacity: isRemovingPlayer ? 0.7 : 1,
-                        minWidth: '60px'
+                        minWidth: '60px',
                       }}
-                      title="Játékmenet törlése"
+                      title={t('player.sessions.deleteTitle')}
                     >
-                      Törlés
+                      {t('common.delete')}
                     </button>
                   </li>
                 )
@@ -492,14 +493,14 @@ export function PlayerHub({
             </ul>
           </div>
         )}
-        
+
         <div className="start-session">
-          <h4>Új játékmenet indítása</h4>
+          <h4>{t('player.sessions.startTitle')}</h4>
           <p className="start-session__meta">
-            Játék:{' '}
+            {t('player.sessions.gameLabel')}{' '}
             <strong>
               {environments.find((environment) => environment.id === defaultEnvironmentId)?.name ||
-                'Válassz játékot'}
+                t('player.sessions.gamePlaceholder')}
             </strong>
           </p>
           <form
@@ -510,13 +511,13 @@ export function PlayerHub({
             }}
           >
             <label htmlFor="new-session-name">
-              Játékmenet neve
+              {t('player.sessions.nameLabel')}
               <input
                 id="new-session-name"
                 type="text"
                 value={newGameName}
                 onChange={(event) => setNewGameName(event.target.value)}
-                placeholder="Add meg a játékmenet nevét..."
+                placeholder={t('player.sessions.namePlaceholder')}
                 maxLength={32}
                 aria-invalid={isDuplicateGameName ? 'true' : 'false'}
                 aria-describedby="new-session-name-hint"
@@ -526,8 +527,8 @@ export function PlayerHub({
                 className={`field-hint ${isDuplicateGameName ? 'field-hint--error' : ''}`}
               >
                 {isDuplicateGameName
-                  ? 'Ez a név már foglalt ebben a játékban. Válassz másikat.'
-                  : 'Add meg a játékmenet nevét, legfeljebb 32 karakterben.'}
+                  ? t('player.sessions.nameHintDuplicate')
+                  : t('player.sessions.nameHint')}
               </span>
             </label>
             <div className="start-session__actions">
@@ -541,7 +542,7 @@ export function PlayerHub({
                   isDuplicateGameName
                 }
               >
-                Új játékmenet indítása
+                {t('player.sessions.startButton')}
               </button>
             </div>
           </form>
@@ -550,14 +551,14 @@ export function PlayerHub({
 
       {selectedPlayer && playerEnvironment && (
         <div className="panel-block">
-          <h3>Aktív játékmenet: {selectedPlayer.name}</h3>
-          <p>Játék: {playerEnvironment.name}</p>
+          <h3>{t('player.activeSession.heading', { name: selectedPlayer.name })}</h3>
+          <p>{t('player.activeSession.game', { name: playerEnvironment.name })}</p>
 
           <section className="sub-panel">
-            <h4>Pakli szerkesztés</h4>
+            <h4>{t('player.deck.title')}</h4>
             <div className="deck-builder">
               <div className="deck-column">
-                <h5>Elérhető kártyák</h5>
+                <h5>{t('player.deck.availableCards')}</h5>
                 <div
                   className="card-grid card-grid--compact"
                   onDragOver={handleCollectionDragOver}
@@ -593,7 +594,7 @@ export function PlayerHub({
                 </div>
               </div>
               <div className="deck-column">
-                <h5>Pakli sorrend</h5>
+                <h5>{t('player.deck.deckOrder')}</h5>
                 <div
                   className={`card-stack ${dropIndex !== null ? 'is-dragging' : ''} ${
                     isDeckSurfaceTarget ? 'is-drop-target' : ''
@@ -631,7 +632,11 @@ export function PlayerHub({
                           health={playerCardState.health}
                           accent="deck"
                           highlight
-                          footer={<span className="card-footnote">Pozíció {index + 1}</span>}
+                          footer={
+                            <span className="card-footnote">
+                              {t('player.deck.position', { index: index + 1 })}
+                            </span>
+                          }
                         />
                       </div>
                     )
@@ -645,8 +650,8 @@ export function PlayerHub({
                     onDragLeave={handleDeckSurfaceDragLeave}
                   >
                     {deckDraft.length === 0
-                      ? 'Húzd ide a kártyákat a pakli létrehozásához'
-                      : 'Húzd ide a kártyát a pakli végére'}
+                      ? t('player.deck.dropHintEmpty')
+                      : t('player.deck.dropHint')}
                   </div>
                 </div>
               </div>
@@ -654,12 +659,13 @@ export function PlayerHub({
           </section>
 
           <section className="sub-panel">
-            <h4>Kiválasztott kazamaták</h4>
+            <h4>{t('player.dungeons.title')}</h4>
             <ul className="dungeon-list">
               {playerEnvironment.dungeons.map((dungeon) => (
                 <li key={dungeon.id}>
                   <div>
-                    <strong>{dungeon.name}</strong> - {DUNGEON_TYPE_NAMES[dungeon.type]} ({getDeckRequirement(dungeon)} kártya)
+                    <strong>{dungeon.name}</strong> - {t(`environment.dungeon.type.${dungeon.type}`)}{' '}
+                    {t('player.dungeons.cardRequirement', { count: getDeckRequirement(dungeon) })}
                     <div className="card-sequence">
                       {dungeon.cardOrder.map((cardId) => (
                         <span key={cardId}>
@@ -668,7 +674,9 @@ export function PlayerHub({
                       ))}
                     </div>
                   </div>
-                  <button type="button" onClick={() => runFight(dungeon)}>Harc indítása</button>
+                  <button type="button" onClick={() => runFight(dungeon)}>
+                    {t('player.dungeons.startBattle')}
+                  </button>
                 </li>
               ))}
             </ul>
@@ -679,11 +687,14 @@ export function PlayerHub({
           )}
 
           <section className="sub-panel">
-            <h4>Csatatörténet</h4>
+            <h4>{t('player.history.title')}</h4>
             <ul className="history-list">
               {selectedPlayer.battleHistory.map((battle) => (
                 <li key={battle.timestamp}>
-                  {new Date(battle.timestamp).toLocaleString()} - {playerEnvironment.dungeons.find((d) => d.id === battle.dungeonId)?.name ?? 'Ismeretlen kazamata'} - {battle.playerVictory ? 'Győzelem' : 'Vereség'}
+                  {new Date(battle.timestamp).toLocaleString()} -{' '}
+                  {playerEnvironment.dungeons.find((d) => d.id === battle.dungeonId)?.name ??
+                    t('common.unknownDungeon')}{' '}
+                  - {battle.playerVictory ? t('player.history.victory') : t('player.history.defeat')}
                 </li>
               ))}
             </ul>
@@ -692,14 +703,14 @@ export function PlayerHub({
       )}
       <ConfirmDialog
         open={Boolean(playerPendingRemoval)}
-        title="Játékmenet törlése"
+        title={t('player.confirm.deleteTitle')}
         description={
           playerPendingRemoval
-            ? `Biztosan törlöd a "${playerPendingRemoval.name}" játékmenetet? Ez a művelet nem visszavonható.`
+            ? t('player.confirm.deleteDescription', { name: playerPendingRemoval.name })
             : ''
         }
-        confirmLabel="Játékmenet törlése"
-        cancelLabel="Mégse"
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
         onCancel={cancelPlayerRemoval}
         onConfirm={confirmPlayerRemoval}
         isConfirming={isRemovingPlayer}

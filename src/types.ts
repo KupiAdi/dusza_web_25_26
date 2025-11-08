@@ -5,12 +5,6 @@ export type CardKind = 'standard' | 'leader'
 
 export type DungeonType = 'encounter' | 'minor' | 'major'
 
-export const DUNGEON_TYPE_NAMES: Record<DungeonType, string> = {
-  encounter: 'Egyszerű találkozás',
-  minor: 'Kis kazamata',
-  major: 'Nagy kazamata',
-}
-
 export interface WorldCard {
   id: string
   name: string
@@ -52,6 +46,8 @@ export interface BattleRoundResult {
   dungeonCardId: string
   winner: 'player' | 'dungeon'
   reason: string
+  reasonKey?: string
+  reasonParams?: Record<string, string | number>
 }
 
 export interface BattleResult {

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import type { BattleResult, GameEnvironment, PlayerCardState, DungeonType } from '../types'
+import type { BattleResult, GameEnvironment, PlayerCardState } from '../types'
 import { CardPreview } from './CardPreview'
-import { getRewardDescriptor } from '../utils/rewards'
+import { getRewardDescriptorKey } from '../utils/rewards'
+import { useTranslation } from '../state/LanguageContext'
 import './BattleScene.css'
 
 interface BattleSceneProps {
@@ -19,6 +20,7 @@ export function BattleScene({ result, environment, playerCards, onComplete, onRe
   const [phase, setPhase] = useState<AnimationPhase>('intro')
   const [playerScore, setPlayerScore] = useState(0)
   const [dungeonScore, setDungeonScore] = useState(0)
+  const { t } = useTranslation()
 
   const currentRound = result.rounds[currentRoundIndex]
   const isLastRound = currentRoundIndex === result.rounds.length - 1
@@ -106,6 +108,32 @@ export function BattleScene({ result, environment, playerCards, onComplete, onRe
   const playerHealth = playerCardState?.health ?? playerCard.health
 
   const dungeon = environment.dungeons.find((d) => d.id === result.dungeonId)
+  const rewardDescriptorKey = dungeon ? getRewardDescriptorKey(dungeon.type) : ''
+  const rewardDescriptor = rewardDescriptorKey ? t(rewardDescriptorKey) : ''
+
+  const translateRoundReason = () => {
+    if (!currentRound.reasonKey) {
+      return currentRound.reason
+    }
+    const baseParams = { ...(currentRound.reasonParams ?? {}) }
+    if (
+      currentRound.reasonParams &&
+      'playerElement' in currentRound.reasonParams &&
+      typeof currentRound.reasonParams.playerElement === 'string'
+    ) {
+      baseParams.playerElementName = t(`elements.${currentRound.reasonParams.playerElement}`)
+      delete (baseParams as any).playerElement
+    }
+    if (
+      currentRound.reasonParams &&
+      'dungeonElement' in currentRound.reasonParams &&
+      typeof currentRound.reasonParams.dungeonElement === 'string'
+    ) {
+      baseParams.dungeonElementName = t(`elements.${currentRound.reasonParams.dungeonElement}`)
+      delete (baseParams as any).dungeonElement
+    }
+    return t(currentRound.reasonKey, baseParams)
+  }
 
   const handleSkip = () => {
     if (result.playerVictory) {
@@ -130,9 +158,9 @@ export function BattleScene({ result, environment, playerCards, onComplete, onRe
           type="button" 
           className="battle-skip-button"
           onClick={handleSkip}
-          aria-label="Harc átugrása"
+          aria-label={t('battle.skip')}
         >
-          Átugrás →
+          {t('battle.skipCta')}
         </button>
       )}
       
@@ -145,7 +173,7 @@ export function BattleScene({ result, environment, playerCards, onComplete, onRe
                 {result.playerVictory ? '🏆' : '💀'}
               </div>
               <h1 className="final-result-title">
-                {result.playerVictory ? 'GYŐZELEM!' : 'VERESÉG'}
+                {result.playerVictory ? t('battle.victoryTitle') : t('battle.defeatTitle')}
               </h1>
               <div className="final-result-score">
                 <span className="final-score-player">{playerScore}</span>
@@ -153,9 +181,9 @@ export function BattleScene({ result, environment, playerCards, onComplete, onRe
                 <span className="final-score-dungeon">{dungeonScore}</span>
               </div>
               <p className="final-result-subtitle">
-                {result.playerVictory 
-                  ? 'Legyőzted a kazamatát!' 
-                  : 'A kazamata túl erős volt...'}
+                {result.playerVictory
+                  ? t('battle.victorySubtitle')
+                  : t('battle.defeatSubtitle')}
               </p>
               <p className="final-result-dungeon">{dungeon?.name}</p>
             </div>
@@ -166,26 +194,26 @@ export function BattleScene({ result, environment, playerCards, onComplete, onRe
         {phase !== 'complete' && phase !== 'reward-selection' && (
           <div className="battle-scene__header">
             <div className="battle-score battle-score--player">
-              <span className="battle-score__label">Játékos</span>
+              <span className="battle-score__label">{t('battle.playerLabel')}</span>
               <span className="battle-score__value">{playerScore}</span>
             </div>
             
             <div className="battle-round-indicator">
               {phase === 'intro' ? (
                 <div className="battle-title">
-                  <h2>Harc kezdődik!</h2>
+                  <h2>{t('battle.introTitle')}</h2>
                   <p>{dungeon?.name}</p>
                 </div>
               ) : (
                 <>
-                  <span className="round-label">Kör</span>
+                  <span className="round-label">{t('battle.roundLabel')}</span>
                   <span className="round-number">{currentRound.round}</span>
                 </>
               )}
             </div>
             
             <div className="battle-score battle-score--dungeon">
-              <span className="battle-score__label">Kazamata</span>
+              <span className="battle-score__label">{t('battle.dungeonLabel')}</span>
               <span className="battle-score__value">{dungeonScore}</span>
             </div>
           </div>
@@ -207,7 +235,7 @@ export function BattleScene({ result, environment, playerCards, onComplete, onRe
             {/* VS Indicator */}
             <div className={`battle-vs ${phase === 'clash' ? 'is-clashing' : ''}`}>
               <span>⚔️</span>
-              <span className="vs-text">VS</span>
+              <span className="vs-text">{t('battle.vs')}</span>
               <span>⚔️</span>
             </div>
 
@@ -221,8 +249,10 @@ export function BattleScene({ result, environment, playerCards, onComplete, onRe
         {/* Round Result Message */}
         {phase === 'round-result' && (
           <div className={`battle-result-message ${currentRound.winner === 'player' ? 'victory' : 'defeat'}`}>
-            <p className="result-winner">{currentRound.winner === 'player' ? 'Játékos nyert!' : 'Kazamata nyert!'}</p>
-            <p className="result-reason">{currentRound.reason}</p>
+            <p className="result-winner">
+              {currentRound.winner === 'player' ? t('battle.roundVictory') : t('battle.roundDefeat')}
+            </p>
+            <p className="result-reason">{translateRoundReason()}</p>
           </div>
         )}
 
@@ -230,11 +260,13 @@ export function BattleScene({ result, environment, playerCards, onComplete, onRe
         {phase === 'reward-selection' && (
           <div className="battle-reward-selection">
             <div className="reward-selection-header">
-              <h2 className="reward-title">🎁 Válassz Jutalmat!</h2>
-              <p className="reward-subtitle">
-                {dungeon?.name}: {getRewardDescriptor(dungeon?.type as DungeonType)}
-              </p>
-              <p className="reward-hint">Kattints arra a kártyára, amelyiket fejleszteni szeretnéd</p>
+              <h2 className="reward-title">{t('battle.rewardTitle')}</h2>
+              {dungeon && (
+                <p className="reward-subtitle">
+                  {t('battle.rewardSubtitle', { dungeon: dungeon.name, reward: rewardDescriptor })}
+                </p>
+              )}
+              <p className="reward-hint">{t('battle.rewardHint')}</p>
             </div>
             
             <div className="reward-card-grid">

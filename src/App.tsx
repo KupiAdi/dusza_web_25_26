@@ -4,8 +4,10 @@ import { EnvironmentEditor } from './components/EnvironmentEditor'
 import { PlayerHub } from './components/PlayerHub'
 import { Auth } from './components/Auth'
 import { ConfirmDialog } from './components/ConfirmDialog'
+import { LanguageSelector } from './components/LanguageSelector'
 import { GameDataProvider, useGameData } from './state/GameDataContext'
 import { AuthProvider, useAuth } from './state/AuthContext'
+import { LanguageProvider, useTranslation } from './state/LanguageContext'
 import type { GameEnvironment } from './types'
 import { generateId } from './utils/id'
 
@@ -13,6 +15,7 @@ type TabKey = 'player' | 'master'
 
 function AppShell() {
   const { user, logout } = useAuth()
+  const { t } = useTranslation()
   const {
     environments,
     players,
@@ -57,6 +60,10 @@ function AppShell() {
     return environments.find((env) => env.id === selectedEnvironmentId) ?? null
   }, [environments, selectedEnvironmentId])
 
+  const greetingText = user?.username
+    ? t('app.greeting', { name: user.username })
+    : t('common.welcomeGuest')
+
   function notify(message: string, type: 'info' | 'error' = 'info') {
     setStatusMessage({ text: message, type })
     setTimeout(() => setStatusMessage(null), 3000)
@@ -66,15 +73,15 @@ function AppShell() {
     event.preventDefault()
     const trimmed = newEnvironmentName.trim()
     if (!trimmed) {
-      notify('Adj nevet az új játéknak.', 'error')
+      notify(t('validation.environmentNameRequired'), 'error')
       return
     }
     if (trimmed.length > 32) {
-      notify('A játék neve legfeljebb 32 karakter lehet.', 'error')
+      notify(t('validation.environmentNameMax'), 'error')
       return
     }
     if (environments.some((env) => env.name.toLowerCase() === trimmed.toLowerCase())) {
-      notify('Ilyen nevű játék már létezik.', 'error')
+      notify(t('validation.environmentNameExists'), 'error')
       return
     }
 
@@ -89,9 +96,9 @@ function AppShell() {
       await addEnvironment(environment)
       setSelectedEnvironmentId(environment.id)
       setNewEnvironmentName('')
-      notify('Új játék hozzáadva.')
+      notify(t('environment.feedback.created'))
     } catch (error: any) {
-      notify(error.message || 'Hiba történt a játék létrehozása során', 'error')
+      notify(error.message || t('environment.errors.createFailed'), 'error')
     }
   }
 
@@ -99,7 +106,7 @@ function AppShell() {
     try {
       await updateEnvironment(updatedEnvironment)
     } catch (error: any) {
-      notify(error.message || 'Hiba történt a játék mentése során', 'error')
+      notify(error.message || t('environment.errors.updateFailed'), 'error')
     }
   }
 
@@ -125,9 +132,9 @@ function AppShell() {
       if (selectedEnvironmentId === targetEnvironment.id) {
         setSelectedEnvironmentId('')
       }
-      notify('A játék törölve lett.')
+      notify(t('environment.feedback.deleted'))
     } catch (error: any) {
-      notify(error?.message || 'Hiba történt a játék törlése során', 'error')
+      notify(error?.message || t('environment.errors.deleteFailed'), 'error')
     } finally {
       setIsRemovingEnvironment(false)
       setEnvironmentPendingRemoval(null)
@@ -138,7 +145,7 @@ function AppShell() {
     return (
       <div className="loading-screen">
         <div className="loading-spinner"></div>
-        <p>Betöltés...</p>
+        <p>{t('common.loading')}</p>
       </div>
     )
   }
@@ -147,11 +154,12 @@ function AppShell() {
     <div className="app-shell">
       <header className="app-header">
         <div>
-          <h1>Damareen</h1>
-          <p>Gyűjtögetős fantasy kártyakaland React alapokon.</p>
+          <h1>{t('app.title')}</h1>
+          <p>{t('app.subtitle')}</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <span style={{ opacity: 0.9 }}>Üdv, {user?.username}!</span>
+          <LanguageSelector size="small" />
+          <span style={{ opacity: 0.9 }}>{greetingText}</span>
           <button
             type="button"
             onClick={logout}
@@ -165,7 +173,7 @@ function AppShell() {
               fontWeight: 600,
             }}
           >
-            Kijelentkezés
+            {t('common.logout')}
           </button>
         </div>
       </header>
@@ -177,14 +185,14 @@ function AppShell() {
             className={activeTab === 'player' ? 'active' : ''}
             onClick={() => setActiveTab('player')}
           >
-            Játékmenet mód
+            {t('app.tabs.player')}
           </button>
           <button
             type="button"
             className={activeTab === 'master' ? 'active' : ''}
             onClick={() => setActiveTab('master')}
           >
-            Játékmester mód
+            {t('app.tabs.master')}
           </button>
         </nav>
       )}
@@ -198,17 +206,17 @@ function AppShell() {
       <main className="app-main">
         {isAdmin && (
           <aside className="environment-sidebar">
-            <h2>Játékok</h2>
+            <h2>{t('environment.sidebarTitle')}</h2>
             <form className="form-grid" onSubmit={handleCreateEnvironment}>
               <label>
-                Név
+                {t('environment.form.name')}
                 <input
                   value={newEnvironmentName}
                   onChange={(event) => setNewEnvironmentName(event.target.value)}
                   maxLength={32}
                 />
               </label>
-              <button type="submit">Új játék</button>
+              <button type="submit">{t('environment.form.submit')}</button>
             </form>
 
             <ul className="environment-list">
@@ -222,7 +230,10 @@ function AppShell() {
                     {environment.name}
                   </button>
                   <span className="env-meta">
-                    {environment.worldCards.length} kártya, {environment.dungeons.length} kazamata
+                    {t('environment.meta.summary', {
+                      cards: environment.worldCards.length,
+                      dungeons: environment.dungeons.length,
+                    })}
                   </span>
                   <button
                     type="button"
@@ -230,7 +241,7 @@ function AppShell() {
                     onClick={() => handleEnvironmentRemovalRequest(environment)}
                     disabled={isRemovingEnvironment}
                   >
-                    Törlés
+                    {t('common.delete')}
                   </button>
                 </li>
               ))}
@@ -240,7 +251,7 @@ function AppShell() {
 
         {!isAdmin && (
           <aside className="environment-sidebar">
-            <h2>Játékok</h2>
+            <h2>{t('environment.sidebarTitle')}</h2>
             <ul className="environment-list">
               {environments.map((environment) => (
                 <li key={environment.id}>
@@ -252,7 +263,10 @@ function AppShell() {
                     {environment.name}
                   </button>
                   <span className="env-meta">
-                    {environment.worldCards.length} kártya, {environment.dungeons.length} kazamata
+                    {t('environment.meta.summary', {
+                      cards: environment.worldCards.length,
+                      dungeons: environment.dungeons.length,
+                    })}
                   </span>
                 </li>
               ))}
@@ -278,20 +292,20 @@ function AppShell() {
           )}
 
           {activeTab === 'master' && !activeEnvironment && (
-            <p>Adj hozzá egy játékot a szerkesztéshez.</p>
+            <p>{t('app.masterEmpty')}</p>
           )}
         </section>
       </main>
       <ConfirmDialog
         open={Boolean(environmentPendingRemoval)}
-        title="Játék törlése"
+        title={t('environment.confirm.deleteTitle')}
         description={
           environmentPendingRemoval
-            ? `Biztosan törlöd a "${environmentPendingRemoval.name}" játékot? Ez a művelet nem visszavonható.`
+            ? t('environment.confirm.deleteDescription', { name: environmentPendingRemoval.name })
             : ''
         }
-        confirmLabel="Játék törlése"
-        cancelLabel="Mégse"
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
         onCancel={cancelEnvironmentRemoval}
         onConfirm={confirmEnvironmentRemoval}
         isConfirming={isRemovingEnvironment}
@@ -302,12 +316,13 @@ function AppShell() {
 
 function AppWithAuth() {
   const { isAuthenticated, isLoading } = useAuth()
+  const { t } = useTranslation()
 
   if (isLoading) {
     return (
       <div className="loading-screen">
         <div className="loading-spinner"></div>
-        <p>Betöltés...</p>
+        <p>{t('common.loading')}</p>
       </div>
     )
   }
@@ -325,9 +340,11 @@ function AppWithAuth() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppWithAuth />
-    </AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <AppWithAuth />
+      </AuthProvider>
+    </LanguageProvider>
   )
 }
 

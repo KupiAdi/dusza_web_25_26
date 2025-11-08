@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { DungeonType, GameEnvironment, WorldCard } from '../types'
-import { DUNGEON_TYPE_NAMES } from '../types'
 import { CardPreview } from './CardPreview'
 import { ConfirmDialog } from './ConfirmDialog'
 import { generateId } from '../utils/id'
+import { useTranslation } from '../state/LanguageContext'
 
 const DUNGEON_REQUIREMENTS: Record<
   DungeonType,
@@ -15,10 +15,10 @@ const DUNGEON_REQUIREMENTS: Record<
 }
 
 const CARD_TYPES = [
-  { value: 'earth', label: 'Föld' },
-  { value: 'water', label: 'Víz' },
-  { value: 'air', label: 'Levegő' },
-  { value: 'fire', label: 'Tűz' },
+  { value: 'earth', labelKey: 'elements.earth' },
+  { value: 'water', labelKey: 'elements.water' },
+  { value: 'air', labelKey: 'elements.air' },
+  { value: 'fire', labelKey: 'elements.fire' },
 ] as const
 
 interface StandardCardForm {
@@ -46,6 +46,7 @@ interface EnvironmentEditorProps {
 }
 
 export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProps) {
+  const { t } = useTranslation()
   const environmentRef = useRef(environment)
   
   useEffect(() => {
@@ -88,10 +89,10 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
     try {
       const { api } = await import('../services/api')
       const data = await api.generateImage(cardName)
-      console.log('🖼️ Kép API válasz:', cardName, data)
+      console.log('🖼️ Image API response:', cardName, data)
       return data.path
     } catch (error) {
-      console.error('Hiba a kép generálásakor:', error)
+      console.error('Error while generating image:', error)
       return ''
     }
   }
@@ -99,37 +100,37 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
   async function handleStandardSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!standardForm.name.trim()) {
-      withFeedback('Adj meg egy nevet a kártyához.', 'error')
+      withFeedback(t('validation.cardNameRequired'), 'error')
       return
     }
     if (standardForm.name.length > 16) {
-      withFeedback('A kártya neve legfeljebb 16 karakter lehet.', 'error')
+      withFeedback(t('validation.cardNameMax'), 'error')
       return
     }
     if (environment.worldCards.some((card) => card.name.toLowerCase() === standardForm.name.toLowerCase())) {
-      withFeedback('Ez a kártyanév már létezik.', 'error')
+      withFeedback(t('validation.cardNameExists'), 'error')
       return
     }
     if (standardForm.damage === '') {
-      withFeedback('Adj meg egy sebzés értéket.', 'error')
+      withFeedback(t('validation.cardDamageRequired'), 'error')
       return
     }
     if (standardForm.health === '') {
-      withFeedback('Adj meg egy életerő értéket.', 'error')
+      withFeedback(t('validation.cardHealthRequired'), 'error')
       return
     }
     const damageValue = Number(standardForm.damage)
     const healthValue = Number(standardForm.health)
     if (Number.isNaN(damageValue) || Number.isNaN(healthValue)) {
-      withFeedback('Érvényes számot adj meg.', 'error')
+      withFeedback(t('validation.cardValueInvalid'), 'error')
       return
     }
     if (damageValue < 2 || damageValue > 100) {
-      withFeedback('A sebzés 2 és 100 között lehet.', 'error')
+      withFeedback(t('validation.cardDamageRange'), 'error')
       return
     }
     if (healthValue < 1 || healthValue > 100) {
-      withFeedback('Az életerő 1 és 100 között lehet.', 'error')
+      withFeedback(t('validation.cardHealthRange'), 'error')
       return
     }
 
@@ -152,7 +153,7 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
     })
 
     setStandardForm({ name: '', damage: '2', health: '2', element: 'earth' })
-    withFeedback('Sikeresen hozzáadtad a kártyát a listához. Kép generálása folyamatban...')
+    withFeedback(t('environment.feedback.cardAdded'))
 
     setTimeout(async () => {
       const backgroundImage = await generateCardImage(cardName)
@@ -177,11 +178,11 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
     event.preventDefault()
     const base = standardCards.find((card) => card.id === leaderForm.baseCardId)
     if (!base) {
-      withFeedback('Válassz ki egy alap kártyát a vezér létrehozásához.', 'error')
+      withFeedback(t('validation.leaderBaseRequired'), 'error')
       return
     }
     if (!leaderForm.name.trim()) {
-      withFeedback('A vezérkártya neve kötelező.', 'error')
+      withFeedback(t('validation.leaderNameRequired'), 'error')
       return
     }
 
@@ -207,7 +208,7 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
     })
 
     setLeaderForm({ baseCardId: '', name: '', mode: 'double-damage' })
-    withFeedback('A vezérkártya elkészült. Kép generálása folyamatban...')
+    withFeedback(t('environment.feedback.leaderAdded'))
 
     setTimeout(async () => {
       const backgroundImage = await generateCardImage(cardName)
@@ -250,10 +251,10 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
 
   function validateDungeonForm(): string | null {
     if (!dungeonForm.name.trim()) {
-      return 'A kazamata neve kötelező.'
+      return t('validation.dungeonNameRequired')
     }
     if (environment.dungeons.some((d) => d.name.toLowerCase() === dungeonForm.name.trim().toLowerCase())) {
-      return 'Ez a kazamata név már foglalt.'
+      return t('validation.dungeonNameExists')
     }
     const req = DUNGEON_REQUIREMENTS[dungeonForm.type]
 
@@ -261,14 +262,14 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
     const leaderSlots = dungeonForm.cardOrder.slice(req.standard)
 
     if (standardSlots.some((id) => !id)) {
-      return 'Töltsd ki az összes sima kártya helyét.'
+      return t('validation.dungeonStandardSlots')
     }
     if (leaderSlots.some((id) => !id) && req.leader > 0) {
-      return 'Válassz ki egy vezérkártyát a végére.'
+      return t('validation.dungeonLeaderSlots')
     }
     const uniqueStandard = new Set(standardSlots)
     if (uniqueStandard.size !== standardSlots.length) {
-      return 'Egy sima kártya csak egyszer szerepelhet a kazamatában.'
+      return t('validation.dungeonCardUnique')
     }
     return null
   }
@@ -292,7 +293,7 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
     })
     const req = DUNGEON_REQUIREMENTS.encounter
     setDungeonForm({ name: '', type: 'encounter', cardOrder: Array(req.total).fill('') })
-    withFeedback('A kazamata hozzáadva.')
+    withFeedback(t('environment.feedback.dungeonAdded'))
   }
 
   function removeDungeon(dungeonId: string) {
@@ -300,7 +301,7 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
       ...environment,
       dungeons: environment.dungeons.filter((dungeon) => dungeon.id !== dungeonId),
     })
-    withFeedback('Kazamata eltávolítva.')
+    withFeedback(t('environment.feedback.dungeonRemoved'))
   }
 
   function requestWorldCardRemoval(card: WorldCard) {
@@ -323,7 +324,7 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
 
     const nextWorldCards = environment.worldCards.filter((card) => card.id !== cardId)
     if (nextWorldCards.length === environment.worldCards.length) {
-      withFeedback('A kártya nem található.', 'error')
+      withFeedback(t('environment.errors.cardNotFound'), 'error')
       return
     }
 
@@ -350,22 +351,22 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
     }))
     withFeedback(
       affectedDungeons.length
-        ? 'Kártya eltávolítva. Az érintett kazamaták kártyalistája frissítésre szorul.'
-        : 'Kártya eltávolítva.'
+        ? t('environment.feedback.cardRemovedWithDungeons')
+        : t('environment.feedback.cardRemoved')
     )
   }
 
   return (
     <>
       <section className="panel">
-        <h2>Játékmester eszközök</h2>
+        <h2>{t('environment.labels.masterTools')}</h2>
         {feedback && <div className={`feedback feedback--${feedback.type}`}>{feedback.text}</div>}
 
         <div className="panel-block">
-          <h3>Új sima kártya</h3>
+          <h3>{t('environment.labels.standardCardForm')}</h3>
           <form className="form-grid" onSubmit={handleStandardSubmit}>
             <label>
-              Név
+              {t('common.name')}
               <input
                 value={standardForm.name}
                 onChange={(event) =>
@@ -375,7 +376,7 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
               />
             </label>
             <label>
-              Sebzés
+              {t('environment.labels.damage')}
               <input
                 type="number"
                 min={2}
@@ -387,7 +388,7 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
               />
             </label>
             <label>
-              Életerő
+              {t('environment.labels.health')}
               <input
                 type="number"
                 min={1}
@@ -399,7 +400,7 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
               />
             </label>
             <label>
-              Típus
+              {t('environment.labels.type')}
               <select
                 value={standardForm.element}
                 onChange={(event) =>
@@ -411,27 +412,27 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
               >
                 {CARD_TYPES.map((option) => (
                   <option key={option.value} value={option.value}>
-                    {option.label}
+                    {t(option.labelKey)}
                   </option>
                 ))}
               </select>
             </label>
-            <button type="submit">Kártya hozzáadása</button>
+            <button type="submit">{t('environment.actions.addCard')}</button>
           </form>
         </div>
 
         <div className="panel-block">
-          <h3>Új vezérkártya</h3>
+          <h3>{t('environment.labels.leaderCardForm')}</h3>
           <form className="form-grid" onSubmit={handleLeaderSubmit}>
             <label>
-              Alap kártya
+              {t('environment.labels.baseCard')}
               <select
                 value={leaderForm.baseCardId}
                 onChange={(event) =>
                   setLeaderForm((prev) => ({ ...prev, baseCardId: event.target.value }))
                 }
               >
-                <option value="">Válassz...</option>
+                <option value="">{t('common.select')}</option>
                 {standardCards.map((card) => (
                   <option key={card.id} value={card.id}>
                     {card.name}
@@ -440,7 +441,7 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
               </select>
             </label>
             <label>
-              Név
+              {t('common.name')}
               <input
                 value={leaderForm.name}
                 onChange={(event) =>
@@ -450,7 +451,7 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
               />
             </label>
             <label>
-              Erősítési mód
+              {t('environment.labels.boostMode')}
               <select
                 value={leaderForm.mode}
                 onChange={(event) =>
@@ -460,18 +461,18 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
                   }))
                 }
               >
-                <option value="double-damage">Sebzés duplázás</option>
-                <option value="double-health">Életerő duplázás</option>
+                <option value="double-damage">{t('environment.labels.doubleDamage')}</option>
+                <option value="double-health">{t('environment.labels.doubleHealth')}</option>
               </select>
             </label>
-            <button type="submit">Vezér létrehozása</button>
+            <button type="submit">{t('environment.actions.createLeader')}</button>
           </form>
         </div>
 
         <div className="panel-block">
-          <h3>Sima kártyák</h3>
+          <h3>{t('environment.labels.standardCards')}</h3>
           <div className="card-toggle-grid">
-            {standardCards.length === 0 && <p>Még nincs egy sima kártya sem.</p>}
+            {standardCards.length === 0 && <p>{t('environment.empty.standardCards')}</p>}
             {standardCards.map((card) => (
               <CardPreview
                 key={card.id}
@@ -484,9 +485,9 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
         </div>
 
         <div className="panel-block">
-          <h3>Vezérkártyák</h3>
+          <h3>{t('environment.labels.leaderCards')}</h3>
           <div className="card-toggle-grid">
-            {leaderCards.length === 0 && <p>Még nincs egy vezérkártya sem.</p>}
+            {leaderCards.length === 0 && <p>{t('environment.empty.leaderCards')}</p>}
             {leaderCards.map((card) => (
               <CardPreview
                 key={card.id}
@@ -499,10 +500,10 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
         </div>
 
         <div className="panel-block">
-          <h3>Kazamaták</h3>
+          <h3>{t('environment.labels.dungeons')}</h3>
           <form className="form-grid" onSubmit={handleDungeonSubmit}>
             <label>
-              Név
+              {t('common.name')}
               <input
                 value={dungeonForm.name}
                 onChange={(event) =>
@@ -512,16 +513,16 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
               />
             </label>
             <label>
-              Típus
+              {t('environment.labels.type')}
               <select
                 value={dungeonForm.type}
                 onChange={(event) =>
                   handleDungeonTypeChange(event.target.value as DungeonType)
                 }
               >
-                <option value="encounter">Egyszerű találkozás</option>
-                <option value="minor">Kis kazamata</option>
-                <option value="major">Nagy kazamata</option>
+                <option value="encounter">{t('environment.dungeon.type.encounter')}</option>
+                <option value="minor">{t('environment.dungeon.type.minor')}</option>
+                <option value="major">{t('environment.dungeon.type.major')}</option>
               </select>
             </label>
             <div className="dungeon-grid">
@@ -534,12 +535,14 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
                 )
                 return (
                   <label key={index}>
-                    {isLeaderSlot ? 'Vezér' : `Kártya ${index + 1}`}
+                    {isLeaderSlot
+                      ? t('environment.dungeon.leaderLabel')
+                      : t('environment.dungeon.cardLabel', { index: index + 1 })}
                     <select
                       value={cardId}
                       onChange={(event) => handleDungeonCardChange(index, event.target.value)}
                     >
-                      <option value="">Válassz...</option>
+                      <option value="">{t('common.select')}</option>
                       {options.map((card) => (
                         <option
                           key={card.id}
@@ -554,22 +557,27 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
                 )
               })}
             </div>
-            <button type="submit">Kazamata hozzáadása</button>
+            <button type="submit">{t('environment.actions.addDungeon')}</button>
           </form>
 
           <ul className="dungeon-list">
             {environment.dungeons.map((dungeon) => (
               <li key={dungeon.id}>
                 <div>
-                  <strong>{dungeon.name}</strong> ({DUNGEON_TYPE_NAMES[dungeon.type]})
+                  <strong>{dungeon.name}</strong> ({t(`environment.dungeon.type.${dungeon.type}`)})
                   <p>
-                    Kártyasorrend: {dungeon.cardOrder
-                      .map((id) => environment.worldCards.find((card) => card.id === id)?.name ?? 'Ismeretlen')
+                    {t('environment.labels.cardOrder')}{' '}
+                    {dungeon.cardOrder
+                      .map(
+                        (id) =>
+                          environment.worldCards.find((card) => card.id === id)?.name ??
+                          t('common.unknown')
+                      )
                       .join(' > ')}
                   </p>
                 </div>
                 <button type="button" onClick={() => removeDungeon(dungeon.id)}>
-                  Törlés
+                  {t('common.delete')}
                 </button>
               </li>
             ))}
@@ -578,14 +586,14 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
       </section>
       <ConfirmDialog
         open={Boolean(cardPendingRemoval)}
-        title="Kártya törlése"
+        title={t('environment.confirm.cardDeleteTitle')}
         description={
           cardPendingRemoval
-            ? `Biztosan törlöd a "${cardPendingRemoval.name}" kártyát? Ez a művelet nem visszavonható.`
+            ? t('environment.confirm.cardDeleteDescription', { name: cardPendingRemoval.name })
             : ''
         }
-        confirmLabel="Kártya törlése"
-        cancelLabel="Mégse"
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
         onCancel={cancelWorldCardRemoval}
         onConfirm={confirmWorldCardRemoval}
       />

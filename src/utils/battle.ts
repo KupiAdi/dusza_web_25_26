@@ -74,11 +74,18 @@ function prepareEnvironmentCard(
 function evaluateRound(player: PreparedCard, dungeon: PreparedCard): {
   winner: 'player' | 'dungeon'
   reason: string
+  reasonKey: string
+  reasonParams?: Record<string, string | number>
 } {
   if (player.damage > dungeon.health && dungeon.damage > player.health) {
     return {
       winner: 'player',
       reason: `${player.name} döntő csapást mért be, mielőtt ${dungeon.name} visszaüthetne`,
+      reasonKey: 'battle.reasons.decisiveStrike',
+      reasonParams: {
+        playerName: player.name,
+        dungeonName: dungeon.name,
+      },
     }
   }
 
@@ -86,6 +93,13 @@ function evaluateRound(player: PreparedCard, dungeon: PreparedCard): {
     return {
       winner: 'player',
       reason: `${player.name} ${player.damage} sebzést okozott, ami meghaladja ${dungeon.name} ${dungeon.health} életét`,
+      reasonKey: 'battle.reasons.playerDamageOverflow',
+      reasonParams: {
+        playerName: player.name,
+        playerDamage: player.damage,
+        dungeonName: dungeon.name,
+        dungeonHealth: dungeon.health,
+      },
     }
   }
 
@@ -93,6 +107,13 @@ function evaluateRound(player: PreparedCard, dungeon: PreparedCard): {
     return {
       winner: 'dungeon',
       reason: `${dungeon.name} ${dungeon.damage} sebzést okozott, ami meghaladja ${player.name} ${player.health} életét`,
+      reasonKey: 'battle.reasons.dungeonDamageOverflow',
+      reasonParams: {
+        dungeonName: dungeon.name,
+        dungeonDamage: dungeon.damage,
+        playerName: player.name,
+        playerHealth: player.health,
+      },
     }
   }
 
@@ -102,6 +123,13 @@ function evaluateRound(player: PreparedCard, dungeon: PreparedCard): {
     return {
       winner: 'player',
       reason: `${player.name} ${playerElementName} eleme legyőzi ${dungeon.name} ${dungeonElementName} elemét`,
+      reasonKey: 'battle.reasons.playerElementAdvantage',
+      reasonParams: {
+        playerName: player.name,
+        playerElement: player.element,
+        dungeonName: dungeon.name,
+        dungeonElement: dungeon.element,
+      },
     }
   }
 
@@ -111,12 +139,23 @@ function evaluateRound(player: PreparedCard, dungeon: PreparedCard): {
     return {
       winner: 'dungeon',
       reason: `${dungeon.name} ${dungeonElementName} eleme legyőzi ${player.name} ${playerElementName} elemét`,
+      reasonKey: 'battle.reasons.dungeonElementAdvantage',
+      reasonParams: {
+        playerName: player.name,
+        playerElement: player.element,
+        dungeonName: dungeon.name,
+        dungeonElement: dungeon.element,
+      },
     }
   }
 
   return {
     winner: 'dungeon',
     reason: `${dungeon.name} patthelyzet miatt győz`,
+    reasonKey: 'battle.reasons.stalemate',
+    reasonParams: {
+      dungeonName: dungeon.name,
+    },
   }
 }
 
@@ -151,6 +190,7 @@ export function runBattle({ environment, deck, dungeon, playerCards }: RunBattle
         dungeonCardId,
         winner: 'dungeon',
         reason: 'Hiányzó kártyaadatok',
+        reasonKey: 'battle.reasons.missingCard',
       })
       return
     }
@@ -162,6 +202,8 @@ export function runBattle({ environment, deck, dungeon, playerCards }: RunBattle
       dungeonCardId: dungeonCard.id,
       winner: roundResult.winner,
       reason: roundResult.reason,
+      reasonKey: roundResult.reasonKey,
+      reasonParams: roundResult.reasonParams,
     })
 
     if (roundResult.winner === 'player') {

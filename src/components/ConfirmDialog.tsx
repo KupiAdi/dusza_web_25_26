@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'
+import { useTranslation } from '../state/LanguageContext'
 
 type ConfirmDialogProps = {
   open: boolean
@@ -13,14 +14,19 @@ type ConfirmDialogProps = {
 
 export function ConfirmDialog({
   open,
-  title = 'Megerősítés szükséges',
+  title,
   description,
-  confirmLabel = 'Megerősítés',
-  cancelLabel = 'Mégse',
+  confirmLabel,
+  cancelLabel,
   onConfirm,
   onCancel,
   isConfirming = false,
 }: ConfirmDialogProps) {
+  const { t } = useTranslation()
+  const resolvedTitle = title ?? t('confirm.defaultTitle')
+  const resolvedConfirmLabel = confirmLabel ?? t('common.confirm')
+  const resolvedCancelLabel = cancelLabel ?? t('common.cancel')
+
   useEffect(() => {
     if (!open) {
       return
@@ -56,17 +62,17 @@ export function ConfirmDialog({
         aria-describedby="confirm-dialog-description"
       >
         <header className="modal-dialog__header">
-          <h3 id="confirm-dialog-title">{title}</h3>
+          <h3 id="confirm-dialog-title">{resolvedTitle}</h3>
         </header>
         <div className="modal-dialog__body" id="confirm-dialog-description">
           <p>{description}</p>
         </div>
         <footer className="modal-dialog__actions">
           <button type="button" className="ghost-button" onClick={onCancel} disabled={isConfirming}>
-            {cancelLabel}
+            {resolvedCancelLabel}
           </button>
           <button type="button" onClick={onConfirm} disabled={isConfirming}>
-            {isConfirming ? 'Folyamatban...' : confirmLabel}
+            {isConfirming ? t('common.confirming') : resolvedConfirmLabel}
           </button>
         </footer>
       </div>

@@ -1,13 +1,13 @@
 import type { DungeonType, PlayerCardState } from '../types'
 
-export function getRewardDescriptor(type: DungeonType): string {
+export function getRewardDescriptorKey(type: DungeonType): string {
   switch (type) {
     case 'encounter':
-      return '+1 sebzés'
+      return 'rewards.descriptor.encounter'
     case 'minor':
-      return '+2 élet'
+      return 'rewards.descriptor.minor'
     case 'major':
-      return '+3 sebzés'
+      return 'rewards.descriptor.major'
     default:
       return ''
   }

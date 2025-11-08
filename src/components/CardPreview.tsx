@@ -1,17 +1,45 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { WorldCard } from '../types'
+import { useTranslation } from '../state/LanguageContext'
 
-const ELEMENT_THEME: Record<WorldCard['element'], {
-  label: string
-  emoji: string
-  primary: string
-  secondary: string
-  glow: string
-}> = {
-  fire: { label: 'Tűz', emoji: '🔥', primary: '#f97316', secondary: '#ef4444', glow: 'rgba(239, 68, 68, 0.35)' },
-  earth: { label: 'Föld', emoji: '🌍', primary: '#16a34a', secondary: '#166534', glow: 'rgba(34, 197, 94, 0.3)' },
-  water: { label: 'Víz', emoji: '💧', primary: '#0ea5e9', secondary: '#1e3a8a', glow: 'rgba(14, 165, 233, 0.3)' },
-  air: { label: 'Levegő', emoji: '💨', primary: '#a855f7', secondary: '#6366f1', glow: 'rgba(99, 102, 241, 0.3)' },
+const ELEMENT_THEME: Record<
+  WorldCard['element'],
+  {
+    labelKey: string
+    emoji: string
+    primary: string
+    secondary: string
+    glow: string
+  }
+> = {
+  fire: {
+    labelKey: 'elements.fire',
+    emoji: '🔥',
+    primary: '#f97316',
+    secondary: '#ef4444',
+    glow: 'rgba(239, 68, 68, 0.35)',
+  },
+  earth: {
+    labelKey: 'elements.earth',
+    emoji: '🌍',
+    primary: '#16a34a',
+    secondary: '#166534',
+    glow: 'rgba(34, 197, 94, 0.3)',
+  },
+  water: {
+    labelKey: 'elements.water',
+    emoji: '💧',
+    primary: '#0ea5e9',
+    secondary: '#1e3a8a',
+    glow: 'rgba(14, 165, 233, 0.3)',
+  },
+  air: {
+    labelKey: 'elements.air',
+    emoji: '💨',
+    primary: '#a855f7',
+    secondary: '#6366f1',
+    glow: 'rgba(99, 102, 241, 0.3)',
+  },
 }
 
 export type CardPreviewAccent = 'world' | 'collection' | 'deck' | 'dungeon' | 'reward'
@@ -39,6 +67,7 @@ export function CardPreview({
   compact,
   onDelete,
 }: CardPreviewProps) {
+  const { t } = useTranslation()
   const theme = ELEMENT_THEME[card.element]
   const style = {
     '--card-primary': theme.primary,
@@ -74,7 +103,7 @@ export function CardPreview({
             event.stopPropagation()
             onDelete()
           }}
-          aria-label="Kártya törlése"
+          aria-label={t('card.deleteAria')}
         >
           ×
         </button>
@@ -104,7 +133,7 @@ export function CardPreview({
                   <span className="stat-emoji">⚔️</span>
                 </div>
                 <div className="stat-item">
-                  <span className="stat-value">{theme.label}</span>
+                  <span className="stat-value">{t(theme.labelKey)}</span>
                   <span className="stat-emoji">{theme.emoji}</span>
                 </div>
               </div>
