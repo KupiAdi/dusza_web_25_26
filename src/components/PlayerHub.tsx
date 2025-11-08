@@ -10,6 +10,7 @@ import { runBattle } from '../utils/battle'
 import { generateId } from '../utils/id'
 import { applyReward, getRewardDescriptor } from '../utils/rewards'
 import { BattleReport } from './BattleReport'
+import { BattleScene } from './BattleScene'
 import { CardPreview } from './CardPreview'
 import { ConfirmDialog } from './ConfirmDialog'
 
@@ -56,6 +57,7 @@ export function PlayerHub({
   const [newGameName, setNewGameName] = useState('')
   const [deckDraft, setDeckDraft] = useState<DeckEntry[]>([])
   const [latestBattle, setLatestBattle] = useState<BattleResult | null>(null)
+  const [showBattleScene, setShowBattleScene] = useState(false)
   const [pendingReward, setPendingReward] = useState<PendingReward | null>(null)
   const [message, setMessage] = useState<{ text: string; type: 'info' | 'error' } | null>(null)
   const [playerPendingRemoval, setPlayerPendingRemoval] = useState<{ id: string; name: string } | null>(null)
@@ -308,12 +310,24 @@ export function PlayerHub({
     })
 
     setLatestBattle(battle)
+    setShowBattleScene(true)
+    
     onUpdatePlayer(selectedPlayer.id, {
       battleHistory: [...selectedPlayer.battleHistory, battle],
     })
+  }
 
-    if (battle.playerVictory) {
-      setPendingReward({ type: dungeon.type, dungeonName: dungeon.name, battle })
+  function handleBattleSceneComplete() {
+    setShowBattleScene(false)
+    
+    if (!latestBattle || !selectedPlayer) {
+      return
+    }
+
+    const dungeon = playerEnvironment?.dungeons.find((d) => d.id === latestBattle.dungeonId)
+    
+    if (latestBattle.playerVictory && dungeon) {
+      setPendingReward({ type: dungeon.type, dungeonName: dungeon.name, battle: latestBattle })
       showMessage('Győzelem! Válassz kártyajutalmat.')
     } else {
       showMessage('A harc elveszett. Próbáld újra!', 'error')
@@ -418,9 +432,18 @@ export function PlayerHub({
   const isDeckSurfaceTarget = dropIndex === deckDraft.length
 
   return (
-    <section className="panel">
-      <h2>Játékos központ</h2>
-      {message && <div className={`feedback feedback--${message.type}`}>{message.text}</div>}
+    <>
+      {showBattleScene && latestBattle && playerEnvironment && (
+        <BattleScene 
+          result={latestBattle} 
+          environment={playerEnvironment}
+          onComplete={handleBattleSceneComplete}
+        />
+      )}
+      
+      <section className="panel">
+        <h2>Játékos központ</h2>
+        {message && <div className={`feedback feedback--${message.type}`}>{message.text}</div>}
 
       <div className="panel-block">
         <h3>Játékmenetek</h3>
@@ -714,6 +737,7 @@ export function PlayerHub({
         onConfirm={confirmPlayerRemoval}
         isConfirming={isRemovingPlayer}
       />
-    </section>
+      </section>
+    </>
   )
 }

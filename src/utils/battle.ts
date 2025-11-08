@@ -15,6 +15,13 @@ const ELEMENT_ADVANTAGE: Record<string, string> = {
   air: 'fire',
 }
 
+const ELEMENT_NAMES: Record<string, string> = {
+  fire: 'tűz',
+  earth: 'föld',
+  water: 'víz',
+  air: 'levegő',
+}
+
 interface PreparedCard {
   id: string
   name: string
@@ -71,41 +78,45 @@ function evaluateRound(player: PreparedCard, dungeon: PreparedCard): {
   if (player.damage > dungeon.health && dungeon.damage > player.health) {
     return {
       winner: 'player',
-      reason: `${player.name} lands the decisive blow before ${dungeon.name} can retaliate`,
+      reason: `${player.name} döntő csapást mért be, mielőtt ${dungeon.name} visszaüthetne`,
     }
   }
 
   if (player.damage > dungeon.health) {
     return {
       winner: 'player',
-      reason: `${player.name} dealt ${player.damage} damage which exceeds ${dungeon.name}'s health`,
+      reason: `${player.name} ${player.damage} sebzést okozott, ami meghaladja ${dungeon.name} ${dungeon.health} életét`,
     }
   }
 
   if (dungeon.damage > player.health) {
     return {
       winner: 'dungeon',
-      reason: `${dungeon.name} dealt ${dungeon.damage} damage which exceeds ${player.name}'s health`,
+      reason: `${dungeon.name} ${dungeon.damage} sebzést okozott, ami meghaladja ${player.name} ${player.health} életét`,
     }
   }
 
   if (ELEMENT_ADVANTAGE[player.element] === dungeon.element) {
+    const playerElementName = ELEMENT_NAMES[player.element] || player.element
+    const dungeonElementName = ELEMENT_NAMES[dungeon.element] || dungeon.element
     return {
       winner: 'player',
-      reason: `${player.name}'s ${player.element} element counters ${dungeon.name}'s ${dungeon.element}`,
+      reason: `${player.name} ${playerElementName} eleme legyőzi ${dungeon.name} ${dungeonElementName} elemét`,
     }
   }
 
   if (ELEMENT_ADVANTAGE[dungeon.element] === player.element) {
+    const playerElementName = ELEMENT_NAMES[player.element] || player.element
+    const dungeonElementName = ELEMENT_NAMES[dungeon.element] || dungeon.element
     return {
       winner: 'dungeon',
-      reason: `${dungeon.name}'s ${dungeon.element} element counters ${player.name}'s ${player.element}`,
+      reason: `${dungeon.name} ${dungeonElementName} eleme legyőzi ${player.name} ${playerElementName} elemét`,
     }
   }
 
   return {
     winner: 'dungeon',
-    reason: `${dungeon.name} wins by stalemate advantage`,
+    reason: `${dungeon.name} patthelyzet miatt győz`,
   }
 }
 
@@ -139,7 +150,7 @@ export function runBattle({ environment, deck, dungeon, playerCards }: RunBattle
         playerCardId: playerDeckEntry?.cardId ?? 'missing',
         dungeonCardId,
         winner: 'dungeon',
-        reason: 'Missing card data',
+        reason: 'Hiányzó kártyaadatok',
       })
       return
     }
