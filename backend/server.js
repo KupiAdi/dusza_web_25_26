@@ -360,7 +360,7 @@ app.get('/api/players', authMiddleware, async (req, res) => {
           playerWins: battle.playerWins,
           dungeonWins: battle.dungeonWins,
           playerVictory: Boolean(battle.playerVictory),
-          rounds: JSON.parse(battle.battleData),
+          rounds: typeof battle.battleData === 'string' ? JSON.parse(battle.battleData) : battle.battleData,
           timestamp: battle.timestamp
         }));
 
