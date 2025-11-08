@@ -910,5 +910,120 @@
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 1rem;
   }
+
+  .battle-result-message {
+    padding: 1.5rem 2rem;
+    max-width: 90%;
+  }
+
+  .result-winner {
+    font-size: 1.5rem;
+  }
+
+  .result-reason {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .battle-scene__content {
+    padding: 1.5rem 0.75rem;
+  }
+
+  .battle-score,
+  .battle-round-indicator {
+    padding: 1rem 1.5rem;
+    min-width: 120px;
+  }
+
+  .battle-score__label {
+    font-size: 0.85rem;
+  }
+
+  .battle-score__value {
+    font-size: 2rem;
+  }
+
+  .battle-title h2 {
+    font-size: 1.5rem;
+  }
+
+  .battle-title p {
+    font-size: 1rem;
+  }
+
+  .round-number {
+    font-size: 2rem;
+  }
+
+  .battle-card {
+    max-width: 180px;
+  }
+
+  .vs-text {
+    font-size: 2rem;
+  }
+
+  .final-result-icon {
+    font-size: 4rem;
+  }
+
+  .final-result-title {
+    font-size: 2rem;
+  }
+
+  .final-result-score {
+    font-size: 2rem;
+    gap: 0.75rem;
+  }
+
+  .final-score-separator {
+    font-size: 1.5rem;
+  }
+
+  .final-result-subtitle {
+    font-size: 1rem;
+  }
+
+  .final-result-dungeon {
+    font-size: 0.9rem;
+  }
+
+  .reward-title {
+    font-size: 2rem;
+  }
+
+  .reward-subtitle {
+    font-size: 1rem;
+  }
+
+  .reward-hint {
+    font-size: 0.85rem;
+  }
+
+  .reward-card-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .battle-result-message {
+    padding: 1rem 1.5rem;
+    bottom: 20%;
+  }
+
+  .result-winner {
+    font-size: 1.25rem;
+  }
+
+  .result-reason {
+    font-size: 0.85rem;
+  }
+
+  .battle-skip-button {
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+  }
 }
 

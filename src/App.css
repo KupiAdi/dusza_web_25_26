@@ -209,6 +209,7 @@
   padding: 2rem 3rem 1.5rem;
   background: linear-gradient(135deg, #172554, #2563eb);
   color: #f8fafc;
+  flex-wrap: wrap;
 }
 
 .app-header h1 {
@@ -1138,6 +1139,27 @@
   box-shadow: 0 18px 35px -25px rgba(15, 23, 42, 0.55);
 }
 
+.mobile-clickable {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.mobile-clickable:active {
+  transform: scale(0.95);
+  opacity: 0.8;
+}
+
+.mobile-clickable .card-preview-wrapper {
+  cursor: pointer !important;
+}
+
+.mobile-clickable.is-disabled {
+  opacity: 0.6;
+}
+
+.mobile-clickable.is-disabled:active {
+  transform: none;
+}
+
 @keyframes float-shape {
   0%,
   100% {
@@ -1180,6 +1202,8 @@
 @media (max-width: 960px) {
   .app-main {
     grid-template-columns: 1fr;
+    padding: 1rem;
+    gap: 1rem;
   }
 
   .environment-sidebar {
@@ -1191,12 +1215,240 @@
   }
 
   .card-stack {
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    padding: 0.75rem;
   }
 
   .card-grid--compact {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1.25rem;
-    justify-items: center;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .deck-builder {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .app-header {
+    padding: 1.5rem 1rem 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .app-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .app-header p {
+    font-size: 0.9rem;
+  }
+
+  .panel {
+    padding: 1rem;
+  }
+
+  .panel-block {
+    padding: 0.75rem;
+  }
+
+  .sub-panel {
+    padding: 0.75rem;
+  }
+
+  .dungeon-list li {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .dungeon-list button {
+    width: 100%;
+  }
+
+  .feedback {
+    right: 1rem;
+    left: 1rem;
+    min-width: auto;
+    max-width: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .mobile-clickable::after {
+    content: '👆';
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    font-size: 1.2rem;
+    opacity: 0.7;
+    pointer-events: none;
+    z-index: 10;
+    animation: tap-hint 2s ease-in-out infinite;
+  }
+
+  .mobile-clickable.is-disabled::after {
+    content: '✓';
+    opacity: 0.9;
+  }
+
+  @keyframes tap-hint {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 0.7;
+    }
+    50% {
+      transform: scale(1.2);
+      opacity: 1;
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .app-header {
+    padding: 1rem;
+  }
+
+  .app-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .app-main {
+    padding: 0.75rem;
+  }
+
+  .panel {
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+  }
+
+  .panel h2 {
+    font-size: 1.25rem;
+  }
+
+  .panel-block h3 {
+    font-size: 1.1rem;
+  }
+
+  .sub-panel h4 {
+    font-size: 1rem;
+  }
+
+  .card-stack {
+    grid-template-columns: 1fr;
+    min-height: 200px;
+  }
+
+  .card-grid--compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .deck-builder {
+    gap: 0.75rem;
+  }
+
+  .start-session {
+    padding: 1rem;
+  }
+
+  .modal-dialog {
+    padding: 1.25rem;
+  }
+
+  .tabs {
+    width: 100%;
+    display: flex;
+  }
+
+  .tabs button {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .auth-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .auth-card h1 {
+    font-size: 2rem;
+  }
+
+  .card-preview__name-footer h5 {
+    font-size: 1rem;
+  }
+
+  .stat-item {
+    padding: 0.3rem 0.5rem;
+  }
+
+  .stat-emoji {
+    font-size: 0.9rem;
+  }
+
+  .stat-value {
+    font-size: 0.85rem;
+  }
+
+  .card-badge {
+    font-size: 0.65rem;
+    padding: 0.25rem 0.5rem;
+    left: 0.5rem;
+    top: 0.5rem;
+  }
+
+  .dungeon-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card-sequence {
+    gap: 0.3rem;
+  }
+
+  .card-sequence span {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .history-list li {
+    font-size: 0.85rem;
+    word-break: break-word;
+  }
+
+  .environment-sidebar {
+    padding: 1rem;
+  }
+
+  .form-grid input,
+  .form-grid select {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  .card-toggle-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .panel h2 {
+    font-size: 1.1rem;
+  }
+
+  .card-grid--compact {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid button,
+  .panel button,
+  .workspace button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
   }
 }

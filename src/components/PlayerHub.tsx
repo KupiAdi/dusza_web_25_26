@@ -61,9 +61,20 @@ export function PlayerHub({
   const [dropIndex, setDropIndex] = useState<number | null>(null)
   const saveTimeoutRef = useRef<number | null>(null)
   const isLoadingDeckRef = useRef(false)
+  const [isMobileView, setIsMobileView] = useState(false)
 
   const selectedPlayer = players.find((player) => player.id === selectedPlayerId) ?? null
   const playerEnvironment = environments.find((env) => env.id === selectedPlayer?.environmentId) ?? null
+
+  // Detect mobile view
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobileView(window.innerWidth <= 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   // Clear selected player if switching to different environment
   useEffect(() => {
@@ -283,6 +294,26 @@ export function PlayerHub({
     setDropIndex((prev) => (prev === deckDraft.length ? null : prev))
   }
 
+  // Mobile-friendly click handlers
+  function handleCollectionCardClick(cardId: string) {
+    if (!isMobileView) return
+    
+    if (deckDraft.some((entry) => entry.cardId === cardId)) {
+      showMessage(t('player.messages.cardAlreadyInDeck'), 'error')
+      return
+    }
+    
+    setDeckDraft((prev) => [...prev, { cardId }])
+    showMessage(t('player.messages.cardAddedToDeck') || 'Kártya hozzáadva a paklihoz', 'info')
+  }
+
+  function handleDeckCardClick(index: number) {
+    if (!isMobileView) return
+    
+    setDeckDraft((prev) => prev.filter((_, idx) => idx !== index))
+    showMessage(t('player.messages.cardRemovedFromDeck') || 'Kártya eltávolítva a pakliból', 'info')
+  }
+
   function getDeckRequirement(dungeon: Dungeon) {
     return dungeon.cardOrder.length
   }
@@ -452,7 +483,7 @@ export function PlayerHub({
               {playersInSelectedEnvironment.map((player) => {
                 const env = environments.find((e) => e.id === player.environmentId)
                 return (
-                  <li key={player.id} style={{ marginBottom: '8px', display: 'flex', gap: '8px' }}>
+                  <li key={player.id} style={{ marginBottom: '8px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     <button
                       type="button"
                       onClick={() => setSelectedPlayerId(player.id)}
@@ -463,8 +494,12 @@ export function PlayerHub({
                         borderRadius: '4px',
                         color: 'white',
                         cursor: 'pointer',
-                        flex: 1,
+                        flex: '1 1 200px',
                         textAlign: 'left',
+                        minWidth: '0',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
                       }}
                     >
                       <strong>{env?.name || t('common.unknownGame')}</strong> - {player.name}
@@ -481,7 +516,8 @@ export function PlayerHub({
                         color: 'white',
                         cursor: isRemovingPlayer ? 'not-allowed' : 'pointer',
                         opacity: isRemovingPlayer ? 0.7 : 1,
-                        minWidth: '60px',
+                        minWidth: '80px',
+                        flex: '0 0 auto',
                       }}
                       title={t('player.sessions.deleteTitle')}
                     >
@@ -575,12 +611,14 @@ export function PlayerHub({
                     return (
                       <div
                         key={card.cardId}
-                        className={`draggable-card ${disabled ? 'is-disabled' : ''}`}
-                        draggable={!disabled}
+                        className={`draggable-card ${disabled ? 'is-disabled' : ''} ${isMobileView ? 'mobile-clickable' : ''}`}
+                        draggable={!disabled && !isMobileView}
                         onDragStart={(event) =>
                           handleCollectionDragStart(event, card.cardId, disabled)
                         }
                         onDragEnd={handleDragEnd}
+                        onClick={() => !disabled && handleCollectionCardClick(card.cardId)}
+                        style={isMobileView ? { cursor: disabled ? 'not-allowed' : 'pointer' } : undefined}
                       >
                         <CardPreview
                           card={worldCard}
@@ -616,8 +654,8 @@ export function PlayerHub({
                     return (
                       <div
                         key={entry.cardId}
-                        className={`deck-draggable ${dropIndex === index ? 'is-drop-target' : ''}`}
-                        draggable
+                        className={`deck-draggable ${dropIndex === index ? 'is-drop-target' : ''} ${isMobileView ? 'mobile-clickable' : ''}`}
+                        draggable={!isMobileView}
                         onDragStart={(event) =>
                           handleDeckDragStart(event, index, entry.cardId)
                         }
@@ -625,6 +663,8 @@ export function PlayerHub({
                         onDragOver={(event) => handleDeckDragOver(event, index)}
                         onDrop={(event) => handleDeckDrop(event, index)}
                         onDragLeave={(event) => handleDeckDragLeave(event, index)}
+                        onClick={() => handleDeckCardClick(index)}
+                        style={isMobileView ? { cursor: 'pointer' } : undefined}
                       >
                         <CardPreview
                           card={worldCard}
@@ -634,7 +674,10 @@ export function PlayerHub({
                           highlight
                           footer={
                             <span className="card-footnote">
-                              {t('player.deck.position', { index: index + 1 })}
+                              {isMobileView 
+                                ? `${t('player.deck.position', { index: index + 1 })} - ${t('player.deck.tapToRemove') || 'Kattints az eltávolításhoz'}`
+                                : t('player.deck.position', { index: index + 1 })
+                              }
                             </span>
                           }
                         />
@@ -649,9 +692,14 @@ export function PlayerHub({
                     onDrop={handleDeckSurfaceDrop}
                     onDragLeave={handleDeckSurfaceDragLeave}
                   >
-                    {deckDraft.length === 0
-                      ? t('player.deck.dropHintEmpty')
-                      : t('player.deck.dropHint')}
+                    {isMobileView 
+                      ? (deckDraft.length === 0 
+                          ? t('player.deck.tapHintEmpty') || 'Kattints egy kártyára a hozzáadáshoz'
+                          : t('player.deck.tapHint') || 'Kattints egy kártyára az eltávolításhoz')
+                      : (deckDraft.length === 0
+                          ? t('player.deck.dropHintEmpty')
+                          : t('player.deck.dropHint'))
+                    }
                   </div>
                 </div>
               </div>

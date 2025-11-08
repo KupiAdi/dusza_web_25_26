@@ -205,6 +205,9 @@ export const translations: Record<Language, TranslationDictionary> = {
         position: 'Pozíció {{index}}',
         dropHintEmpty: 'Húzd ide a kártyákat a pakli létrehozásához',
         dropHint: 'Húzd ide a kártyát a pakli végére',
+        tapHintEmpty: 'Kattints egy kártyára a hozzáadáshoz',
+        tapHint: 'Kattints egy kártyára az eltávolításhoz',
+        tapToRemove: 'Kattints az eltávolításhoz',
       },
       dungeons: {
         title: 'Kiválasztott kazamaták',
@@ -218,6 +221,8 @@ export const translations: Record<Language, TranslationDictionary> = {
       },
       messages: {
         cardAlreadyInDeck: 'Ez a kártya már a pakliban van.',
+        cardAddedToDeck: 'Kártya hozzáadva a paklihoz.',
+        cardRemovedFromDeck: 'Kártya eltávolítva a pakliból.',
         selectPlayerAndEnvironment: 'Válassz ki egy játékost és játékot a harchoz.',
         deckSize: 'A pakli mérete {{size}} kártya kell legyen.',
         winWithReward: 'Győzelem! A jutalom alkalmazva lett.',
@@ -486,6 +491,9 @@ export const translations: Record<Language, TranslationDictionary> = {
         position: 'Position {{index}}',
         dropHintEmpty: 'Drag cards here to build your deck',
         dropHint: 'Drag a card here to place it at the end of the deck',
+        tapHintEmpty: 'Tap a card to add it',
+        tapHint: 'Tap a card to remove it',
+        tapToRemove: 'Tap to remove',
       },
       dungeons: {
         title: 'Selected dungeons',
@@ -499,6 +507,8 @@ export const translations: Record<Language, TranslationDictionary> = {
       },
       messages: {
         cardAlreadyInDeck: 'This card is already in the deck.',
+        cardAddedToDeck: 'Card added to deck.',
+        cardRemovedFromDeck: 'Card removed from deck.',
         selectPlayerAndEnvironment: 'Pick a player and game before starting the battle.',
         deckSize: 'The deck must contain {{size}} card(s).',
         winWithReward: 'Victory! The reward has been applied.',
@@ -767,6 +777,9 @@ export const translations: Record<Language, TranslationDictionary> = {
         position: 'Position {{index}}',
         dropHintEmpty: 'Ziehe Karten hierher, um dein Deck zu bauen',
         dropHint: 'Ziehe eine Karte hierher, um sie ans Ende des Decks zu legen',
+        tapHintEmpty: 'Tippe auf eine Karte, um sie hinzuzufügen',
+        tapHint: 'Tippe auf eine Karte, um sie zu entfernen',
+        tapToRemove: 'Tippen zum Entfernen',
       },
       dungeons: {
         title: 'Ausgewählte Dungeons',
@@ -780,6 +793,8 @@ export const translations: Record<Language, TranslationDictionary> = {
       },
       messages: {
         cardAlreadyInDeck: 'Diese Karte befindet sich bereits im Deck.',
+        cardAddedToDeck: 'Karte zum Deck hinzugefügt.',
+        cardRemovedFromDeck: 'Karte aus dem Deck entfernt.',
         selectPlayerAndEnvironment: 'Wähle zuerst einen Spieler und ein Spiel aus.',
         deckSize: 'Das Deck muss {{size}} Karte(n) enthalten.',
         winWithReward: 'Sieg! Die Belohnung wurde angewendet.',
