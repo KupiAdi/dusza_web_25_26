@@ -70,6 +70,13 @@ export function PlayerHub({
   const selectedPlayer = players.find((player) => player.id === selectedPlayerId) ?? null
   const playerEnvironment = environments.find((env) => env.id === selectedPlayer?.environmentId) ?? null
 
+  // Clear selected player if switching to different environment
+  useEffect(() => {
+    if (selectedPlayer && selectedPlayer.environmentId !== defaultEnvironmentId) {
+      setSelectedPlayerId(null)
+    }
+  }, [defaultEnvironmentId, selectedPlayer])
+
   useEffect(() => {
     if (selectedPlayer) {
       isLoadingDeckRef.current = true
@@ -261,7 +268,7 @@ export function PlayerHub({
 
   function runFight(dungeon: Dungeon) {
     if (!selectedPlayer || !playerEnvironment) {
-      showMessage('Válassz ki egy játékost és környezetet a harchoz.', 'error')
+      showMessage('Válassz ki egy játékost és játékot a harchoz.', 'error')
       return
     }
     if (deckDraft.length !== dungeon.cardOrder.length) {
@@ -299,44 +306,49 @@ export function PlayerHub({
     showMessage('A jutalom alkalmazva lett.')
   }
 
-  function handleCreatePlayer() {
-    if (!newGameName.trim()) {
-      showMessage('Add meg a játék nevét.', 'error')
-      return
-    }
-    if (!defaultPlayerName) {
-      showMessage('Nincs bejelentkezett felhasználó.', 'error')
-      return
-    }
-    const environment = environments.find((env) => env.id === defaultEnvironmentId)
-    if (!environment) {
-      showMessage('Válassz ki egy környezetet a bal oldali menüből.', 'error')
-      return
-    }
+  async function handleCreatePlayer() {
+    try {
+      if (!newGameName.trim()) {
+        showMessage('Add meg a játékmenet nevét.', 'error')
+        return
+      }
+      if (!defaultPlayerName) {
+        showMessage('Nincs bejelentkezett felhasználó.', 'error')
+        return
+      }
+      const environment = environments.find((env) => env.id === defaultEnvironmentId)
+      if (!environment) {
+        showMessage('Válassz ki egy játékot a bal oldali menüből.', 'error')
+        return
+      }
 
-    const collection = prepareInitialCollection(environment)
-    if (collection.length === 0) {
-      showMessage('A kiválasztott környezethez még nincs kezdő gyűjtemény.', 'error')
-      return
-    }
+      const collection = prepareInitialCollection(environment)
+      if (collection.length === 0) {
+        showMessage('A kiválasztott játékhoz még nincs kezdő gyűjtemény.', 'error')
+        return
+      }
 
-    const profile: PlayerProfile = {
-      id: generateId('player'),
-      name: newGameName.trim(),
-      environmentId: environment.id,
-      collection,
-      deck: [],
-      battleHistory: [],
-    }
+      const profile: PlayerProfile = {
+        id: generateId('player'),
+        name: newGameName.trim(),
+        environmentId: environment.id,
+        collection,
+        deck: [],
+        battleHistory: [],
+      }
 
-    onCreatePlayer(profile)
-    setNewGameName('')
-    setSelectedPlayerId(profile.id)
-    showMessage('Új játék indítva.')
+      await onCreatePlayer(profile)
+      setNewGameName('')
+      setSelectedPlayerId(profile.id)
+      showMessage('Új játékmenet indítva.')
+    } catch (error: any) {
+      console.error('Hiba a játékmenet létrehozása során:', error)
+      showMessage(error.message || 'Hiba történt a játékmenet létrehozása során', 'error')
+    }
   }
 
   async function handleRemovePlayer(playerId: string, playerName: string) {
-    if (!confirm(`Biztosan törölni szeretnéd ezt a játékot: "${playerName}"?`)) {
+    if (!confirm(`Biztosan törölni szeretnéd ezt a játékmenetet: "${playerName}"?`)) {
       return
     }
     try {
@@ -344,11 +356,14 @@ export function PlayerHub({
         setSelectedPlayerId(null)
       }
       await onRemovePlayer(playerId)
-      showMessage('Játék törölve.')
+      showMessage('Játékmenet törölve.')
     } catch (error: any) {
-      showMessage(error.message || 'Hiba történt a játék törlése során', 'error')
+      showMessage(error.message || 'Hiba történt a játékmenet törlése során', 'error')
     }
   }
+
+  // Filter players by selected environment
+  const playersInSelectedEnvironment = players.filter((p) => p.environmentId === defaultEnvironmentId)
 
   return (
     <section className="panel">
@@ -356,12 +371,12 @@ export function PlayerHub({
       {message && <div className={`feedback feedback--${message.type}`}>{message.text}</div>}
 
       <div className="panel-block">
-        <h3>Játékok</h3>
-        {players.length > 0 && (
+        <h3>Játékmenetek</h3>
+        {playersInSelectedEnvironment.length > 0 && (
           <div>
-            <h4>Meglévő játékok</h4>
+            <h4>Meglévő játékmenetek</h4>
             <ul style={{ listStyle: 'none', padding: 0 }}>
-              {players.map((player) => {
+              {playersInSelectedEnvironment.map((player) => {
                 const env = environments.find((e) => e.id === player.environmentId)
                 return (
                   <li key={player.id} style={{ marginBottom: '8px', display: 'flex', gap: '8px' }}>
@@ -379,7 +394,7 @@ export function PlayerHub({
                         textAlign: 'left'
                       }}
                     >
-                      <strong>{env?.name || 'Ismeretlen környezet'}</strong> - {player.name}
+                      <strong>{env?.name || 'Ismeretlen játék'}</strong> - {player.name}
                     </button>
                     <button
                       type="button"
@@ -393,7 +408,7 @@ export function PlayerHub({
                         cursor: 'pointer',
                         minWidth: '60px'
                       }}
-                      title="Játék törlése"
+                      title="Játékmenet törlése"
                     >
                       Törlés
                     </button>
@@ -405,15 +420,15 @@ export function PlayerHub({
         )}
         
         <div style={{ marginTop: '16px' }}>
-          <h4>Új játék indítása</h4>
-          <p>Környezet: <strong>{environments.find(e => e.id === defaultEnvironmentId)?.name || 'Válassz környezetet'}</strong></p>
+          <h4>Új játékmenet indítása</h4>
+          <p>Játék: <strong>{environments.find(e => e.id === defaultEnvironmentId)?.name || 'Válassz játékot'}</strong></p>
           <label>
-            Játék neve
+            Játékmenet neve
             <input
               type="text"
               value={newGameName}
               onChange={(e) => setNewGameName(e.target.value)}
-              placeholder="Add meg a játék nevét..."
+              placeholder="Add meg a játékmenet nevét..."
               maxLength={32}
             />
           </label>
@@ -422,15 +437,15 @@ export function PlayerHub({
             onClick={handleCreatePlayer}
             disabled={!defaultPlayerName || !defaultEnvironmentId || !newGameName.trim()}
           >
-            Új játék indítása
+            Új játékmenet indítása
           </button>
         </div>
       </div>
 
       {selectedPlayer && playerEnvironment && (
         <div className="panel-block">
-          <h3>Aktív játék: {selectedPlayer.name}</h3>
-          <p>Környezet: {playerEnvironment.name}</p>
+          <h3>Aktív játékmenet: {selectedPlayer.name}</h3>
+          <p>Játék: {playerEnvironment.name}</p>
 
           <section className="sub-panel">
             <h4>Pakli szerkesztés</h4>

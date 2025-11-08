@@ -143,10 +143,37 @@ app.get('/api/auth/me', authMiddleware, async (req, res) => {
 // Get all environments for current user
 app.get('/api/environments', authMiddleware, async (req, res) => {
   try {
-    const [environments] = await db.query(
-      'SELECT id, name, created_at, updated_at FROM environments WHERE user_id = ?',
+    // Get the current user's username to check if admin
+    const [currentUser] = await db.query(
+      'SELECT username FROM users WHERE id = ?',
       [req.user.userId]
     );
+    
+    const isAdmin = currentUser.length > 0 && currentUser[0].username === 'admin';
+    
+    let environments;
+    if (isAdmin) {
+      // Admin sees only their own environments
+      [environments] = await db.query(
+        'SELECT id, name, created_at, updated_at FROM environments WHERE user_id = ?',
+        [req.user.userId]
+      );
+    } else {
+      // Non-admin users see environments created by admin
+      const [adminUser] = await db.query(
+        'SELECT id FROM users WHERE username = ?',
+        ['admin']
+      );
+      
+      if (adminUser.length === 0) {
+        return res.json({ environments: [] });
+      }
+      
+      [environments] = await db.query(
+        'SELECT id, name, created_at, updated_at FROM environments WHERE user_id = ?',
+        [adminUser[0].id]
+      );
+    }
 
     // For each environment, get cards, dungeons, and starter collection
     const enrichedEnvironments = await Promise.all(
@@ -204,6 +231,16 @@ app.get('/api/environments', authMiddleware, async (req, res) => {
 app.post('/api/environments', authMiddleware, async (req, res) => {
   const connection = await db.getConnection();
   try {
+    // Check if user is admin
+    const [currentUser] = await connection.query(
+      'SELECT username FROM users WHERE id = ?',
+      [req.user.userId]
+    );
+    
+    if (currentUser.length === 0 || currentUser[0].username !== 'admin') {
+      return res.status(403).json({ error: 'Csak az admin felhasználó hozhat létre környezetet' });
+    }
+
     await connection.beginTransaction();
 
     const { environment } = req.body;
@@ -306,6 +343,16 @@ app.post('/api/environments', authMiddleware, async (req, res) => {
 // Delete environment
 app.delete('/api/environments/:id', authMiddleware, async (req, res) => {
   try {
+    // Check if user is admin
+    const [currentUser] = await db.query(
+      'SELECT username FROM users WHERE id = ?',
+      [req.user.userId]
+    );
+    
+    if (currentUser.length === 0 || currentUser[0].username !== 'admin') {
+      return res.status(403).json({ error: 'Csak az admin felhasználó törölhet környezetet' });
+    }
+
     const { id } = req.params;
 
     const [result] = await db.query(
@@ -389,15 +436,15 @@ app.post('/api/players', authMiddleware, async (req, res) => {
     const { player } = req.body;
     const { id, name, environmentId, collection, deck } = player;
 
-    // Verify environment belongs to user
+    // Verify environment exists (can be owned by admin or current user)
     const [envCheck] = await connection.query(
-      'SELECT id FROM environments WHERE id = ? AND user_id = ?',
-      [environmentId, req.user.userId]
+      'SELECT id FROM environments WHERE id = ?',
+      [environmentId]
     );
 
     if (envCheck.length === 0) {
       await connection.rollback();
-      return res.status(403).json({ error: 'Nincs hozzáférésed ehhez a környezethez' });
+      return res.status(404).json({ error: 'A környezet nem található' });
     }
 
     // Create player

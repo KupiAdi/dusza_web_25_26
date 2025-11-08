@@ -23,7 +23,17 @@ function AppShell() {
     updatePlayer,
     removePlayer,
   } = useGameData()
+  const isAdmin = user?.username === 'admin'
   const [activeTab, setActiveTab] = useState<TabKey>('player')
+
+  // Set default tab based on admin status
+  useEffect(() => {
+    if (isAdmin) {
+      setActiveTab('master')
+    } else {
+      setActiveTab('player')
+    }
+  }, [isAdmin])
   const [selectedEnvironmentId, setSelectedEnvironmentId] = useState<string>('')
   const [newEnvironmentName, setNewEnvironmentName] = useState('')
   const [statusMessage, setStatusMessage] = useState<{ text: string; type: 'info' | 'error' } | null>(null)
@@ -53,15 +63,15 @@ function AppShell() {
     event.preventDefault()
     const trimmed = newEnvironmentName.trim()
     if (!trimmed) {
-      notify('Adj nevet az új játékkörnyezetnek.', 'error')
+      notify('Adj nevet az új játéknak.', 'error')
       return
     }
     if (trimmed.length > 32) {
-      notify('A környezet neve legfeljebb 32 karakter lehet.', 'error')
+      notify('A játék neve legfeljebb 32 karakter lehet.', 'error')
       return
     }
     if (environments.some((env) => env.name.toLowerCase() === trimmed.toLowerCase())) {
-      notify('Ilyen nevű környezet már létezik.', 'error')
+      notify('Ilyen nevű játék már létezik.', 'error')
       return
     }
 
@@ -77,9 +87,9 @@ function AppShell() {
       await addEnvironment(environment)
       setSelectedEnvironmentId(environment.id)
       setNewEnvironmentName('')
-      notify('Új játékkörnyezet hozzáadva.')
+      notify('Új játék hozzáadva.')
     } catch (error: any) {
-      notify(error.message || 'Hiba történt a környezet létrehozása során', 'error')
+      notify(error.message || 'Hiba történt a játék létrehozása során', 'error')
     }
   }
 
@@ -87,19 +97,19 @@ function AppShell() {
     try {
       await updateEnvironment(updatedEnvironment)
     } catch (error: any) {
-      notify(error.message || 'Hiba történt a környezet mentése során', 'error')
+      notify(error.message || 'Hiba történt a játék mentése során', 'error')
     }
   }
 
   async function handleEnvironmentRemoval(environmentId: string) {
-    if (!confirm('Biztosan törlöd ezt a játékkörnyezetet?')) {
+    if (!confirm('Biztosan törlöd ezt a játékot?')) {
       return
     }
     try {
       await removeEnvironment(environmentId)
-      notify('A környezet törölve lett.')
+      notify('A játék törölve lett.')
     } catch (error: any) {
-      notify(error.message || 'Hiba történt a környezet törlése során', 'error')
+      notify(error.message || 'Hiba történt a játék törlése során', 'error')
     }
   }
 
@@ -139,22 +149,24 @@ function AppShell() {
         </div>
       </header>
 
-      <nav className="tabs" style={{ margin: '1rem 3rem', width: 'fit-content' }}>
-        <button
-          type="button"
-          className={activeTab === 'player' ? 'active' : ''}
-          onClick={() => setActiveTab('player')}
-        >
-          Játékos mód
-        </button>
-        <button
-          type="button"
-          className={activeTab === 'master' ? 'active' : ''}
-          onClick={() => setActiveTab('master')}
-        >
-          Játékmester mód
-        </button>
-      </nav>
+      {isAdmin && (
+        <nav className="tabs" style={{ margin: '1rem 3rem', width: 'fit-content' }}>
+          <button
+            type="button"
+            className={activeTab === 'player' ? 'active' : ''}
+            onClick={() => setActiveTab('player')}
+          >
+            Játékmenet mód
+          </button>
+          <button
+            type="button"
+            className={activeTab === 'master' ? 'active' : ''}
+            onClick={() => setActiveTab('master')}
+          >
+            Játékmester mód
+          </button>
+        </nav>
+      )}
 
       {statusMessage && (
         <div className={`feedback feedback--${statusMessage.type} header-feedback`}>
@@ -163,44 +175,68 @@ function AppShell() {
       )}
 
       <main className="app-main">
-        <aside className="environment-sidebar">
-          <h2>Környezetek</h2>
-          <form className="form-grid" onSubmit={handleCreateEnvironment}>
-            <label>
-              Név
-              <input
-                value={newEnvironmentName}
-                onChange={(event) => setNewEnvironmentName(event.target.value)}
-                maxLength={32}
-              />
-            </label>
-            <button type="submit">Új környezet</button>
-          </form>
+        {isAdmin && (
+          <aside className="environment-sidebar">
+            <h2>Játékok</h2>
+            <form className="form-grid" onSubmit={handleCreateEnvironment}>
+              <label>
+                Név
+                <input
+                  value={newEnvironmentName}
+                  onChange={(event) => setNewEnvironmentName(event.target.value)}
+                  maxLength={32}
+                />
+              </label>
+              <button type="submit">Új játék</button>
+            </form>
 
-          <ul className="environment-list">
-            {environments.map((environment) => (
-              <li key={environment.id}>
-                <button
-                  type="button"
-                  className={selectedEnvironmentId === environment.id ? 'active' : ''}
-                  onClick={() => setSelectedEnvironmentId(environment.id)}
-                >
-                  {environment.name}
-                </button>
-                <span className="env-meta">
-                  {environment.worldCards.length} kártya, {environment.dungeons.length} kazamata
-                </span>
-                <button
-                  type="button"
-                  className="link-button"
-                  onClick={() => handleEnvironmentRemoval(environment.id)}
-                >
-                  Törlés
-                </button>
-              </li>
-            ))}
-          </ul>
-        </aside>
+            <ul className="environment-list">
+              {environments.map((environment) => (
+                <li key={environment.id}>
+                  <button
+                    type="button"
+                    className={selectedEnvironmentId === environment.id ? 'active' : ''}
+                    onClick={() => setSelectedEnvironmentId(environment.id)}
+                  >
+                    {environment.name}
+                  </button>
+                  <span className="env-meta">
+                    {environment.worldCards.length} kártya, {environment.dungeons.length} kazamata
+                  </span>
+                  <button
+                    type="button"
+                    className="link-button"
+                    onClick={() => handleEnvironmentRemoval(environment.id)}
+                  >
+                    Törlés
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        )}
+
+        {!isAdmin && (
+          <aside className="environment-sidebar">
+            <h2>Játékok</h2>
+            <ul className="environment-list">
+              {environments.map((environment) => (
+                <li key={environment.id}>
+                  <button
+                    type="button"
+                    className={selectedEnvironmentId === environment.id ? 'active' : ''}
+                    onClick={() => setSelectedEnvironmentId(environment.id)}
+                  >
+                    {environment.name}
+                  </button>
+                  <span className="env-meta">
+                    {environment.worldCards.length} kártya, {environment.dungeons.length} kazamata
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        )}
 
         <section className="workspace">
           {activeTab === 'master' && activeEnvironment && (
@@ -220,7 +256,7 @@ function AppShell() {
           )}
 
           {activeTab === 'master' && !activeEnvironment && (
-            <p>Adj hozzá egy játékkörnyezetet a szerkesztéshez.</p>
+            <p>Adj hozzá egy játékot a szerkesztéshez.</p>
           )}
         </section>
       </main>
