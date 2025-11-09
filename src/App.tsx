@@ -5,9 +5,11 @@ import { PlayerHub } from './components/PlayerHub'
 import { Auth } from './components/Auth'
 import { ConfirmDialog } from './components/ConfirmDialog'
 import { LanguageSelector } from './components/LanguageSelector'
+import { ThemeSelector } from './components/ThemeSelector'
 import { GameDataProvider, useGameData } from './state/GameDataContext'
 import { AuthProvider, useAuth } from './state/AuthContext'
 import { LanguageProvider, useTranslation } from './state/LanguageContext'
+import { ThemeProvider } from './state/ThemeContext'
 import type { GameEnvironment } from './types'
 import { generateId } from './utils/id'
 
@@ -158,6 +160,7 @@ function AppShell() {
           <p>{t('app.subtitle')}</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <ThemeSelector size="small" />
           <LanguageSelector size="small" />
           <span style={{ opacity: 0.9 }}>{greetingText}</span>
           <button
@@ -340,11 +343,13 @@ function AppWithAuth() {
 
 function App() {
   return (
-    <LanguageProvider>
-      <AuthProvider>
-        <AppWithAuth />
-      </AuthProvider>
-    </LanguageProvider>
+    <ThemeProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <AppWithAuth />
+        </AuthProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   )
 }
 

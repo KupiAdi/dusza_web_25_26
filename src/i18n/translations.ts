@@ -43,6 +43,14 @@ export const translations: Record<Language, TranslationDictionary> = {
         de: 'Német',
       },
     },
+    theme: {
+      label: 'Téma',
+      options: {
+        auto: 'Automatikus',
+        light: 'Világos',
+        dark: 'Sötét',
+      },
+    },
     app: {
       title: 'Damareen',
       subtitle: 'Gyűjtögetős fantasy kártyakaland React alapokon.',
@@ -329,6 +337,14 @@ export const translations: Record<Language, TranslationDictionary> = {
         de: 'German',
       },
     },
+    theme: {
+      label: 'Theme',
+      options: {
+        auto: 'Auto',
+        light: 'Light',
+        dark: 'Dark',
+      },
+    },
     app: {
       title: 'Damareen',
       subtitle: 'Collectible fantasy card adventure built with React.',
@@ -613,6 +629,14 @@ export const translations: Record<Language, TranslationDictionary> = {
         hu: 'Ungarisch',
         en: 'Englisch',
         de: 'Deutsch',
+      },
+    },
+    theme: {
+      label: 'Design',
+      options: {
+        auto: 'Automatisch',
+        light: 'Hell',
+        dark: 'Dunkel',
       },
     },
     app: {
