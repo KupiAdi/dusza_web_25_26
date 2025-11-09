@@ -22,9 +22,8 @@
   - [Telepítés és Konfiguráció](#telepítés-és-konfiguráció)
   - [API Dokumentáció](#api-dokumentáció)
   - [Adatbázis Séma](#adatbázis-séma)
-  - [Fejlesztési Parancsok](#fejlesztési-parancsok)
-  - [Tesztelés](#tesztelés)
   - [Biztonsági Megfontolások](#biztonsági-megfontolások)
+  - [Deployment](#deployment)
 
 ---
 
