@@ -106,6 +106,20 @@ export function Tutorial() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isActive, skipTutorial, nextStep])
 
+  // Auto-advance for certain steps
+  useEffect(() => {
+    if (!isActive || !isStepComplete) return
+
+    // Auto-advance for session and battle steps
+    if (currentStep === 'session' || currentStep === 'battle') {
+      // Small delay to make the transition feel smoother
+      const timer = setTimeout(() => {
+        nextStep()
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [isActive, isStepComplete, currentStep, nextStep])
+
   if (!isActive) return null
 
   const getStepContent = () => {

@@ -320,7 +320,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       },
       step2: {
         title: 'Kártya hozzáadása',
-        description: 'Rakd be valamelyik kártyát a paklidba! (Húzd vagy kattints rá)',
+        description: 'Rakd be az Aragorn kártyát a paklidba!',
       },
       step3: {
         title: 'Harc indítása',
@@ -636,7 +636,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       },
       step2: {
         title: 'Add a card',
-        description: 'Add any card to your deck! (Drag or click on it)',
+        description: 'Add the Aragorn card to your deck!',
       },
       step3: {
         title: 'Start a battle',
@@ -952,7 +952,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       },
       step2: {
         title: 'Karte hinzufügen',
-        description: 'Füge eine beliebige Karte deinem Deck hinzu! (Ziehe oder klicke darauf)',
+        description: 'Füge die Aragorn-Karte deinem Deck hinzu!',
       },
       step3: {
         title: 'Kampf starten',
