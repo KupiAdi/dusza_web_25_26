@@ -184,7 +184,12 @@ function AppShell() {
               aria-label={t('common.logout')}
               title={t('common.logout')}
             >
-              <span className="icon-button-icon">🚪</span>
+              <img 
+                src="/logout-2-svgrepo-com.svg" 
+                alt="Logout" 
+                className="icon-button-icon"
+                style={{ width: '1.25rem', height: '1.25rem' }}
+              />
             </button>
           </div>
         </div>
