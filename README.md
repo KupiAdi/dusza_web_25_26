@@ -250,16 +250,12 @@ A Játékos mód lehetővé teszi játékmenetek indítását, paklik építés�
 
 #### Győzelmi Feltétel
 
-**Többségi győzelem szükséges:**
-- A játékosnak **legalább annyi kört** meg kell nyernie, ahány kártya van a kazamatában
-- Nem kell minden kört megnyerni, elég a többség
+- A játékos akkor nyer a harc végén, ha összességében legalább annyi kártyája nyert, mint amennyi a kazamatának.
 
 **Példák:**
-- **1 kártyás kazamata (Találkozás)**: Legalább 1 nyertes kör kell → 1/1 győzelem
-- **4 kártyás kazamata (Kis kazamata)**: Legalább 4 nyertes kör kell → 4/4 győzelem
-- **6 kártyás kazamata (Nagy kazamata)**: Legalább 6 nyertes kör kell → 6/6 győzelem
-
-**Fontos:** A pakli és a kazamata hossza megegyezik, így minden kör számít!
+- **1 kártyás kazamata (Találkozás)**: Legalább 1 nyertes kör kell
+- **4 kártyás kazamata (Kis kazamata)**: Legalább 2 nyertes kör kell
+- **6 kártyás kazamata (Nagy kazamata)**: Legalább 3 nyertes kör kell
 
 ---
 
