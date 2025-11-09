@@ -1,238 +1,1892 @@
-# Damareen Card Game Companion
+# Damareen - Fantasy Kártyajáték
 
-React + TypeScript single page application that implements the Damareen fantasy card game workflow for the DUSZA 2025/26 web-mobile qualifier. The app covers both Game Master tooling (world setup) and Player workflow (deck building, dungeon fights, rewards) according to the competition specification.
+> React + TypeScript alapú single page application a Damareen fantasy kártyajátékhoz  
+> **DUSZA 2025/26 Web-Mobile Qualifier**
 
-**🆕 Version 2.0:** Now with MySQL database, user authentication, and multi-user support!
-
-## Quick start
-
-### Prerequisites
-
-- Node.js (v16 or newer)
-- MySQL Server (v8.0 or newer)
-- npm package manager
-
-### Installation
-
-1. **Setup MySQL Database**
-
-```bash
-# Login to MySQL
-mysql -u root -p
-
-# Run the database setup script
-source backend/database.sql;
-```
-
-2. **Configure Backend**
-
-```bash
-cd backend
-
-# Copy environment example
-cp env.example .env
-
-# Edit .env and add your MySQL credentials:
-# DB_USER=your_mysql_username
-# DB_PASSWORD=your_mysql_password
-# JWT_SECRET=your_random_secret_key
-
-# Install dependencies
-npm install
-
-# Initialize database (alternative to manual SQL)
-npm run init-db
-
-# Start backend server
-npm start
-```
-
-3. **Configure Frontend**
-
-```bash
-# Go back to project root
-cd ..
-
-# Copy environment example
-cp env.example .env
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-```
-
-4. **Access the Application**
-
-Open your browser and navigate to `http://localhost:5173`
-
-First time? Click "Regisztráció" to create an account!
-
-## What's New in v2.0
-
-### 🔐 User Authentication
-- Secure registration and login system
-- JWT token-based authentication
-- Password hashing with bcrypt
-- Session management (7-day token expiry)
-
-### 🗄️ MySQL Database
-- Persistent data storage
-- User-specific environments and players
-- Complete data isolation between users
-- Automatic data relationships and cascading deletes
-
-### 👥 Multi-User Support
-- Each user has their own environments
-- Each user has their own player profiles
-- Users cannot see each other's data
-- Secure API endpoints with authentication
-
-### 🌐 REST API
-- Full backend API for all operations
-- Environment management endpoints
-- Player management endpoints
-- Battle history tracking
-- AI image generation (authenticated)
-
-## Role overview
-
-- **Game Master mode** - create and maintain game environments: world cards, derived leader cards, starter collections, and dungeon definitions. The editor enforces the published limits (unique names, stat ranges, unique standard cards per dungeon, required leader placement for minor/major dungeons).
-- **Player mode** - start a new play session within any available environment, build ordered decks from the personal collection, run dungeon battles with a detailed combat log, and apply stat rewards when victorious. Decks must match the dungeon length before a fight can begin.
-
-## Default content
-
-The app ships with a ready-to-play environment named **Damareen Alapkor** featuring sample standard and leader cards plus three dungeons (encounter, minor, major). Game Masters can extend or replace this environment or create new ones from scratch.
-
-**Note:** After implementing authentication, you'll need to create your own environments as each user has their own separate data.
-
-## Combat rules implementation
-
-- Damage greater than opponent health resolves the round immediately.
-- Elemental advantage follows the specified cycle (fire > earth > water > air > fire). Elemental advantage only applies when the damage comparison does not decide the round.
-- If damage and elements result in a stalemate, the dungeon card wins by rule.
-- A battle counts as a victory only when every dungeon card is defeated, matching the brief requirement.
-- Rewards are applied after victories: +1 damage (encounter), +2 health (minor), +3 damage (major). The player chooses the target card from the collection.
-
-## Key screens
-
-- **Login/Register** - Secure authentication screen for user access
-- **Environment sidebar** - manage available worlds, create new environments, or remove unused ones (user-specific)
-- **Game Master workspace** - forms for adding standard cards, deriving leader cards, managing starter collections, and assembling dungeon lineups with live validation
-- **Player hub** - start games, review collections, build ordered decks (with drag-up/down controls), trigger battles, review logs, and view historical fights (user-specific)
-
-## Visual polish
-
-- Modern authentication UI with smooth transitions
-- Loading states and spinners for async operations
-- Card previews now render element themed gradients and stats with lightweight hover motion for quick recognition
-- Battle reports animate round entries sequentially so the flow of each clash stays readable at a glance
-- Reward selection and deck building reuse the same interactive card tiles, keeping actions close to the context
-
-## Development scripts
-
-```bash
-# Frontend
-npm run dev     # start Vite in watch mode
-npm run build   # produce production bundle with type checking
-npm run preview # preview the production bundle
-
-# Backend
-cd backend
-npm start       # start backend server
-npm run init-db # initialize database from SQL file
-```
-
-## API Endpoints
-
-### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login user
-- `GET /api/auth/me` - Get current user
-
-### Environments
-- `GET /api/environments` - Get user's environments
-- `POST /api/environments` - Create/update environment
-- `DELETE /api/environments/:id` - Delete environment
-
-### Players
-- `GET /api/players` - Get user's players
-- `POST /api/players` - Create player
-- `PUT /api/players/:id` - Update player
-- `DELETE /api/players/:id` - Delete player
-
-### Images
-- `POST /api/generate-image` - Generate AI image for cards
-
-## Database Schema
-
-The application uses the following tables:
-- `users` - User accounts
-- `environments` - Game environments (user-specific)
-- `world_cards` - Cards in environments
-- `dungeons` - Dungeon definitions
-- `dungeon_card_order` - Card order in dungeons
-- `player_profiles` - Player profiles (user-specific)
-- `player_cards` - Player card collections
-- `player_deck` - Player deck configurations
-- `battle_history` - Battle results and history
-
-## Security Features
-
-- Password hashing with bcrypt (10 rounds)
-- JWT token authentication (7-day expiry)
-- Protected API endpoints (authentication required)
-- Data isolation (users can only access their own data)
-- SQL injection protection (prepared statements)
-
-## Documentation
-
-- `SETUP.md` - Detailed setup instructions (Hungarian)
-- `GYORSINDITAS.md` - Quick start guide (Hungarian)
-- `VALTOZASOK.md` - Changelog and migration guide (Hungarian)
-- `backend/database.sql` - Complete database schema
-
-## Known gaps and notes
-
-- The battle resolver requires a perfect sweep to claim victory (matching the Hungarian brief literally). Adjust `runBattle` if a different win condition is preferred.
-- Accessibility focuses on keyboardable controls and clear focus styles, but screen reader texts have not been audited.
-- ~~No backend integration is provided; persistence relies on browser storage.~~ **✅ Now with full backend integration!**
-
-## Migration from v1.0
-
-**Important:** The new version uses MySQL database instead of localStorage. Old data in localStorage will **not** be automatically migrated. You'll need to recreate your environments and players after setting up the database.
-
-## Troubleshooting
-
-### "Error connecting to MySQL database"
-- Check if MySQL server is running
-- Verify credentials in `backend/.env`
-- Try connecting manually: `mysql -u DB_USER -p`
-
-### "Nincs autentikáció" error
-- Check if backend is running on port 3001
-- Verify JWT_SECRET in `backend/.env`
-- Try logging in again
-
-### Port already in use
-- Change PORT in `backend/.env` for backend
-- Use `npm run dev -- --port 5174` for frontend
-
-## Future ideas
-
-- Password reset functionality via email
-- Profile editing (email and password change)
-- Environment sharing between users
-- Admin panel for user management
-- Player statistics and leaderboards
-- Real-time updates with WebSocket
-- Export/import environments as JSON
+**🆕 Verzió 2.0:** MySQL adatbázis, felhasználói autentikáció és többfelhasználós támogatás!
 
 ---
 
-**Version:** 2.0.0  
-**License:** ISC  
-**Competition:** DUSZA 2025/26 Web-Mobile Qualifier
+## 📋 Tartalomjegyzék
 
-Let us know if extra quality-of-life features (search, filtering, desktop shortcuts) are required; the structure is ready for incremental enhancements.
+- [Felhasználói Dokumentáció](#-felhasználói-dokumentáció)
+  - [Gyors Kezdés](#gyors-kezdés)
+  - [Bejelentkezés és Regisztráció](#bejelentkezés-és-regisztráció)
+  - [Játékmester Mód](#játékmester-mód)
+  - [Játékos Mód](#játékos-mód)
+  - [Harc Mechanika](#harc-mechanika)
+  - [Felhasználói Felület Funkciók](#felhasználói-felület-funkciók)
+- [Fejlesztői Dokumentáció](#-fejlesztői-dokumentáció)
+  - [Technológiai Stack](#technológiai-stack)
+  - [Projekt Struktúra](#projekt-struktúra)
+  - [Telepítés és Konfiguráció](#telepítés-és-konfiguráció)
+  - [API Dokumentáció](#api-dokumentáció)
+  - [Adatbázis Séma](#adatbázis-séma)
+  - [Fejlesztési Parancsok](#fejlesztési-parancsok)
+  - [Tesztelés](#tesztelés)
+  - [Biztonsági Megfontolások](#biztonsági-megfontolások)
+
+---
+
+## 👤 Felhasználói Dokumentáció
+
+### Gyors Kezdés
+
+#### Előfeltételek
+- Modern webböngésző (Chrome, Firefox, Safari, Edge)
+- Internetkapcsolat a backend szerverhez
+- Regisztrált felhasználói fiók
+
+#### Első Lépések
+
+1. **Nyissa meg az alkalmazást** a böngészőben: `http://localhost:5173`
+2. **Regisztráljon** egy új fiókot vagy **jelentkezzen be** meglévő fiókkal
+3. **Válasszon módot:**
+   - **Játékmester mód**: Környezetek, kártyák és kazamaták létrehozása
+   - **Játékos mód**: Játékmenet indítása, pakli építés, harcok
+
+#### Admin Fiók
+- **Felhasználónév:** `admin`
+- **Jelszó:** `admin123`
+
+**Megjegyzés:** Ez az egyetlen admin fiók a rendszerben. Új felhasználók regisztrációja normál jogosultságú fiókokat hoz létre.
+
+---
+
+### Bejelentkezés és Regisztráció
+
+#### Regisztráció
+1. Kattintson a **"Regisztráció"** fülre
+2. Adja meg a következő adatokat:
+   - **Felhasználónév**: Egyedi azonosító (kötelező)
+   - **Email cím**: Érvényes email (kötelező)
+   - **Jelszó**: Minimum 6 karakter (kötelező)
+3. Kattintson a **"Regisztráció"** gombra
+4. Sikeres regisztráció után automatikusan bejelentkezik
+
+**Megjegyzés:** Az új felhasználók normál jogosultságú fiókokat kapnak. A Játékmester mód csak az `admin` fiókkal érhető el.
+
+#### Bejelentkezés
+1. Adja meg a **felhasználónevét** és **jelszavát**
+2. Kattintson a **"Bejelentkezés"** gombra
+3. A munkamenet 7 napig aktív marad
+
+#### Kijelentkezés
+- Kattintson a jobb felső sarokban található **"Kijelentkezés"** gombra
+
+---
+
+### Játékmester Mód
+
+A Játékmester mód lehetővé teszi játékkörnyezetek, kártyák és kazamaták létrehozását és szerkesztését.
+
+**Fontos:** Ez a mód csak az `admin` felhasználó számára érhető el. Normál felhasználók csak a Játékos módot használhatják.
+
+#### 1. Környezet Létrehozása
+
+**Lépések:**
+1. Váltson **"Játékmester mód"** fülre (admin felhasználóknak elérhető)
+2. A bal oldali sávban adja meg az új környezet nevét
+3. Kattintson az **"Új játék"** gombra
+4. Az új környezet megjelenik a listában
+
+**Funkciók:**
+- **Környezet kiválasztása**: Kattintson egy környezetre a szerkesztéshez
+- **Környezet törlése**: Kattintson a **"Törlés"** gombra a környezet neve mellett
+- **Környezet információk**: Látható a kártyák és kazamaták száma
+
+#### 2. Kártyák Létrehozása
+
+##### Alap (Standard) Kártyák
+
+**Lépések:**
+1. Válassza ki a szerkeszteni kívánt környezetet
+2. Görgessen a **"Új alap kártya"** szakaszhoz
+3. Töltse ki az űrlapot:
+   - **Név**: Kártya neve (max 16 karakter, egyedi)
+   - **Sebzés**: 2-100 közötti érték
+   - **Életerő**: 1-100 közötti érték
+   - **Elem**: Válasszon egyet (Föld, Víz, Levegő, Tűz)
+4. Kattintson a **"Kártya hozzáadása"** gombra
+5. Opcionálisan generálhat AI képet a kártyához
+
+**Elemek:**
+- 🌍 **Föld** (Earth)
+- 💧 **Víz** (Water)
+- 💨 **Levegő** (Air)
+- 🔥 **Tűz** (Fire)
+
+##### Vezér (Leader) Kártyák
+
+**Lépések:**
+1. Görgessen a **"Új vezérkártya"** szakaszhoz
+2. Válassza ki az **alapkártyát** (standard kártya)
+3. Adja meg a vezér nevét
+4. Válasszon módot:
+   - **Dupla sebzés**: Sebzés x2
+   - **Dupla életerő**: Életerő x2
+5. Kattintson a **"Vezér hozzáadása"** gombra
+
+**Megjegyzés:** Vezérkártyák az alapkártyák továbbfejlesztett változatai.
+
+##### Kártyák Szerkesztése és Törlése
+
+- **Kártya megtekintése**: Kattintson egy kártyára a részletek megjelenítéséhez
+- **Kártya törlése**: Kattintson a **"Törlés"** gombra a kártya alatt
+- **AI kép generálás**: Kattintson a **"Kép generálása"** gombra
+
+#### 3. Kazamaták (Dungeons) Létrehozása
+
+**Kazamata típusok:**
+- **Találkozás (Encounter)**: 1 alap kártya
+- **Kis kazamata (Minor)**: 3 alap kártya + 1 vezér kártya
+- **Nagy kazamata (Major)**: 5 alap kártya + 1 vezér kártya
+
+**Lépések:**
+1. Görgessen a **"Új kazamata"** szakaszhoz
+2. Adja meg a kazamata nevét (egyedi)
+3. Válassza ki a típust
+4. Töltse ki a kártya helyeket:
+   - Először az alap kártyák (egyediek kell legyenek)
+   - Utolsó helyre vezérkártya (minor és major esetén)
+5. Kattintson a **"Kazamata hozzáadása"** gombra
+
+**Validációs szabályok:**
+- Minden helyet ki kell tölteni
+- Alap kártyák nem ismétlődhetnek
+- Utolsó hely vezérkártya kell legyen (minor/major esetén)
+
+---
+
+### Játékos Mód
+
+A Játékos mód lehetővé teszi játékmenetek indítását, paklik építését és kazamaták elleni harcokat.
+
+#### 1. Játékmenet (Session) Létrehozása
+
+**Lépések:**
+1. Váltson **"Játékmenet mód"** fülre
+2. A bal oldali **"Új játékmenet"** szakaszban:
+   - Adja meg a játékmenet nevét
+   - Válassza ki a környezetet
+3. Kattintson a **"Játékmenet indítása"** gombra
+4. Automatikusan megkapja az összes alap kártyát a gyűjteményébe
+
+**Funkciók:**
+- **Játékmenet kiválasztása**: Kattintson egy játékmenet névre
+- **Játékmenet törlése**: Kattintson a **"Törlés"** gombra
+
+#### 2. Pakli Építés
+
+**Lépések:**
+1. Válasszon egy játékmenetet
+2. A **"Gyűjtemény"** szakaszban láthatja az összes kártyáját
+3. Húzza a kártyákat a **"Pakli"** szakaszba
+4. A pakli sorrendje fontos - ez lesz a harci sorrend!
+
+**Pakli Kezelés:**
+- **Kártya hozzáadása**: Húzza a kártyát a gyűjteményből a pakliba
+- **Kártya eltávolítása**: Húzza a kártyát a pakliból vissza a gyűjteménybe
+- **Sorrend változtatás**: Húzza a kártyákat fel/le a pakli listában
+- **Mobil nézet**: Használja a **"↑"** és **"↓"** gombokat
+
+**Fontos:** A pakli hosszának meg kell egyeznie a kazamata hosszával a harc indításához!
+
+#### 3. Harc Indítása
+
+**Lépések:**
+1. Építsen egy paklit a megfelelő hosszúsággal
+2. Válasszon egy kazamatát a **"Kazamata választása"** legördülő menüből
+3. Kattintson a **"Harc indítása"** gombra
+4. Nézze meg a harc animációt és eredményeket
+
+**Harc Folyamata:**
+1. **Animált harc jelenet**: Vizuális megjelenítés zenével
+2. **Részletes jelentés**: Körönkénti eredmények
+3. **Jutalom választás**: Győzelem esetén (ha legalább annyi kört nyert, ahány kártya van a kazamatában)
+
+#### 4. Jutalmak
+
+**Jutalom típusok kazamata típus szerint:**
+- **Találkozás (Encounter)**: +1 sebzés egy választott kártyára
+- **Kis kazamata (Minor)**: +2 életerő egy választott kártyára
+- **Nagy kazamata (Major)**: +3 sebzés egy választott kártyára
+
+**Jutalom alkalmazása:**
+1. Győzelem után megjelenik a jutalom választó
+2. Kattintson a kártyára, amelyikre alkalmazni szeretné a jutalmat
+3. A bónusz azonnal hozzáadódik a kártyához
+4. A fejlesztett kártya erősebb lesz a következő harcokban
+
+#### 5. Harctörténet
+
+**Funkciók:**
+- **Korábbi harcok megtekintése**: Lista az összes lejátszott harcról
+- **Részletes információk**:
+  - Kazamata neve
+  - Győztes körök száma (játékos vs kazamata)
+  - Eredmény (győzelem/vereség)
+  - Időbélyeg
+- **Szűrés**: Csak az aktuális játékmenet harcai láthatók
+
+---
+
+### Harc Mechanika
+
+#### Körönkénti Harc Szabályok
+
+**1. Sebzés Összehasonlítás**
+- Ha a játékos kártya sebzése > kazamata kártya életereje → **Játékos nyer**
+- Ha a kazamata kártya sebzése > játékos kártya életereje → **Kazamata nyer**
+
+**2. Elem Előny (ha sebzés nem dönt)**
+- 🔥 Tűz → 🌍 Föld
+- 🌍 Föld → 💧 Víz
+- 💧 Víz → 💨 Levegő
+- 💨 Levegő → 🔥 Tűz
+
+**3. Döntetlen**
+- Ha sem sebzés, sem elem előny nem dönt → **Kazamata nyer**
+
+#### Győzelmi Feltétel
+
+**Többségi győzelem szükséges:**
+- A játékosnak **legalább annyi kört** meg kell nyernie, ahány kártya van a kazamatában
+- Nem kell minden kört megnyerni, elég a többség
+
+**Példák:**
+- **1 kártyás kazamata (Találkozás)**: Legalább 1 nyertes kör kell → 1/1 győzelem
+- **4 kártyás kazamata (Kis kazamata)**: Legalább 4 nyertes kör kell → 4/4 győzelem
+- **6 kártyás kazamata (Nagy kazamata)**: Legalább 6 nyertes kör kell → 6/6 győzelem
+
+**Fontos:** A pakli és a kazamata hossza megegyezik, így minden kör számít!
+
+---
+
+### Felhasználói Felület Funkciók
+
+#### Téma Választás
+
+**Elérhető témák:**
+- 🌓 **Automatikus**: Rendszer beállítás követése
+- ☀️ **Világos**: Világos téma
+- 🌙 **Sötét**: Sötét téma
+
+**Téma váltás:**
+1. Kattintson a téma választó gombra (jobb felső sarok)
+2. Válassza ki a kívánt témát
+3. A beállítás mentésre kerül
+
+#### Nyelv Választás
+
+**Elérhető nyelvek:**
+- 🇭🇺 **Magyar** (Hungarian)
+- 🇬🇧 **Angol** (English)
+- 🇩🇪 **Német** (German)
+
+**Nyelv váltás:**
+1. Kattintson a nyelv választó gombra (jobb felső sarok)
+2. Válassza ki a kívánt nyelvet
+3. Az egész felület azonnal lefordítódik
+
+#### Oldalsáv Összecsukás
+
+**Funkció:**
+- Bal oldali oldalsáv összecsukható több munkaterületért
+- Kattintson a **"←"** / **"→"** gombra
+- Mobil nézetben: **"↑"** / **"↓"** gomb
+- Beállítás automatikusan mentésre kerül
+
+#### Tutorial Rendszer
+
+**Első használatkor:**
+1. Automatikusan elindul egy interaktív tutorial
+2. Lépésről lépésre végigvezet a főbb funkciókon
+3. Kiemeli a fontos UI elemeket
+4. Átugorható vagy később újraindítható
+
+#### Kártya Előnézet
+
+**Funkciók:**
+- **Hover effekt**: Kártya kiemelése egérrel
+- **Elem színek**: Minden elem saját színsémával
+- **Statisztikák**: Sebzés, életerő, elem látható
+- **Bónuszok**: Fejlesztések zöld színnel jelölve
+- **Háttérkép**: AI generált képek megjelenítése
+
+#### Harc Animáció
+
+**Vizuális élmény:**
+- 🎵 **Háttérzene**: Epikus battle zenével
+- 🎬 **Animált körök**: Körönkénti megjelenítés
+- 🎨 **Kártya animációk**: Forgás, fade effektek
+- ⚔️ **Ütközés effektek**: Vizuális visszajelzés
+- 🏆 **Eredmény megjelenítés**: Győzelem/vereség képernyő
+
+#### Visszajelzések és Értesítések
+
+**Típusok:**
+- ℹ️ **Info üzenetek**: Sikeres műveletek (zöld)
+- ❌ **Hiba üzenetek**: Validációs hibák (piros)
+- ⏳ **Betöltés**: Spinner animációk
+- ✅ **Megerősítések**: Törlés előtti dialógusok
+
+#### Reszponzív Dizájn
+
+**Támogatott eszközök:**
+- 💻 **Desktop**: Teljes funkcionalitás
+- 📱 **Tablet**: Optimalizált elrendezés
+- 📱 **Mobil**: Érintés alapú vezérlés
+- 👆 **Touch képernyők**: Drag & drop alternatívák
+
+---
+
+## 🔧 Fejlesztői Dokumentáció
+
+### Technológiai Stack
+
+#### Frontend
+- **Framework**: React 19.1.1
+- **Nyelv**: TypeScript 5.9.3
+- **Build Tool**: Vite 7.1.7
+- **Styling**: CSS (vanilla, CSS variables)
+- **State Management**: React Context API
+- **Routing**: Single Page Application (no routing library)
+
+#### Backend
+- **Runtime**: Node.js
+- **Framework**: Express 5.1.0
+- **Nyelv**: JavaScript (ES Modules)
+- **Adatbázis**: MySQL 8.0+
+- **ORM**: mysql2 (raw queries)
+- **Autentikáció**: JWT (jsonwebtoken 9.0.2)
+- **Jelszó hash**: bcrypt 5.1.1
+
+#### Fejlesztői Eszközök
+- **Linter**: ESLint 9.36.0
+- **Type Checking**: TypeScript Compiler
+- **Testing**: Vitest (battle logic tests)
+- **Version Control**: Git
+
+---
+
+### Projekt Struktúra
+
+```
+dusza_web_25_26/
+│
+├── backend/                      # Backend szerver
+│   ├── auth.js                   # JWT autentikáció middleware
+│   ├── database.sql              # MySQL séma
+│   ├── db.js                     # Adatbázis kapcsolat
+│   ├── init-db.js                # DB inicializáló script
+│   ├── server.js                 # Express szerver és API endpoints
+│   ├── package.json              # Backend dependencies
+│   └── .env                      # Környezeti változók (gitignore-d)
+│
+├── src/                          # Frontend forráskód
+│   ├── components/               # React komponensek
+│   │   ├── Auth.tsx              # Bejelentkezés/regisztráció
+│   │   ├── BattleReport.tsx      # Harc eredmény megjelenítés
+│   │   ├── BattleScene.tsx       # Animált harc jelenet
+│   │   ├── CardPreview.tsx       # Kártya előnézet komponens
+│   │   ├── ConfirmDialog.tsx     # Megerősítő dialógus
+│   │   ├── EnvironmentEditor.tsx # Játékmester szerkesztő
+│   │   ├── LanguageSelector.tsx  # Nyelv választó
+│   │   ├── PlayerHub.tsx         # Játékos központ
+│   │   ├── ThemeSelector.tsx     # Téma választó
+│   │   └── Tutorial.tsx          # Tutorial rendszer
+│   │
+│   ├── state/                    # Context providers
+│   │   ├── AuthContext.tsx       # Autentikáció state
+│   │   ├── GameDataContext.tsx   # Játék adatok (environments, players)
+│   │   ├── LanguageContext.tsx   # Többnyelvűség
+│   │   ├── ThemeContext.tsx      # Téma kezelés
+│   │   └── TutorialContext.tsx   # Tutorial state
+│   │
+│   ├── utils/                    # Utility függvények
+│   │   ├── battle.ts             # Harc logika
+│   │   ├── battle.test.ts        # Harc tesztek
+│   │   ├── rewards.ts            # Jutalom logika
+│   │   ├── rewards.test.ts       # Jutalom tesztek
+│   │   └── id.ts                 # ID generálás
+│   │
+│   ├── services/                 # API szolgáltatások
+│   │   └── api.ts                # Backend API hívások
+│   │
+│   ├── i18n/                     # Internationalization
+│   │   └── translations.ts       # Fordítások (hu, en, de)
+│   │
+│   ├── data/                     # Statikus adatok
+│   │   └── defaultEnvironment.ts # Alapértelmezett játékkörnyezet
+│   │
+│   ├── types.ts                  # TypeScript típusdefiníciók
+│   ├── App.tsx                   # Fő alkalmazás komponens
+│   ├── App.css                   # Fő stílusok
+│   ├── main.tsx                  # React entry point
+│   └── index.css                 # Globális stílusok
+│
+├── public/                       # Statikus fájlok
+│   ├── audio/
+│   │   └── battle.mp3            # Harc háttérzene
+│   ├── images/                   # Generált kártya képek
+│   └── favicon.svg               # Favicon
+│
+├── index.html                    # HTML entry point
+├── vite.config.ts                # Vite konfiguráció
+├── tsconfig.json                 # TypeScript konfiguráció
+├── eslint.config.js              # ESLint konfiguráció
+├── package.json                  # Frontend dependencies
+└── README.md                     # Ez a fájl
+```
+
+---
+
+### Telepítés és Konfiguráció
+
+#### 1. Előfeltételek Telepítése
+
+**Node.js telepítése:**
+```bash
+# Windows: Töltse le a https://nodejs.org oldalról
+# macOS (Homebrew):
+brew install node
+
+# Linux (Ubuntu/Debian):
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+
+**MySQL telepítése:**
+```bash
+# Windows: Töltse le a https://dev.mysql.com/downloads/mysql/
+# macOS (Homebrew):
+brew install mysql
+brew services start mysql
+
+# Linux (Ubuntu/Debian):
+sudo apt-get install mysql-server
+sudo systemctl start mysql
+```
+
+#### 2. Projekt Klónozása
+
+```bash
+git clone <repository-url>
+cd dusza_web_25_26
+```
+
+#### 3. MySQL Adatbázis Beállítása
+
+**Opció A: Manuális SQL futtatás**
+```bash
+# Jelentkezz be MySQL-be
+mysql -u root -p
+
+# Futtasd a séma scriptet
+source backend/database.sql;
+
+# Ellenőrizd a táblákat
+USE damareen_game;
+SHOW TABLES;
+```
+
+**Opció B: Inicializáló script használata**
+```bash
+cd backend
+npm install
+npm run init-db
+```
+
+#### 4. Backend Konfiguráció
+
+```bash
+cd backend
+
+# Másolja az env példát
+cp env.example .env
+
+# Szerkessze a .env fájlt
+nano .env
+```
+
+**`.env` fájl tartalma:**
+```env
+# MySQL Database Configuration
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=your_mysql_password
+DB_NAME=damareen_game
+
+# JWT Secret (generálj egy random stringet)
+JWT_SECRET=your_super_secret_jwt_key_change_this
+
+# Server Configuration
+PORT=3001
+NODE_ENV=development
+
+# Image Generation (optional)
+OPENAI_API_KEY=your_openai_api_key_if_you_have_one
+```
+
+**Függőségek telepítése:**
+```bash
+npm install
+```
+
+**Backend indítása:**
+```bash
+npm start
+# vagy fejlesztői módban:
+npm run dev
+```
+
+#### 5. Frontend Konfiguráció
+
+```bash
+# Menj vissza a projekt gyökérbe
+cd ..
+
+# Másold az env példát (ha van)
+cp env.example .env
+
+# Telepítsd a függőségeket
+npm install
+
+# Indítsd el a dev szervert
+npm run dev
+```
+
+**Frontend elérhető:** `http://localhost:5173`
+
+#### 6. Admin Felhasználó
+
+**Az admin fiók már létezik az adatbázisban:**
+- **Felhasználónév:** `admin`
+- **Jelszó:** `admin123`
+
+**Megjegyzés:** Ez az egyetlen admin jogosultságú fiók. Új felhasználók regisztrációja csak normál jogosultságú fiókokat hoz létre, amelyek nem férhetnek hozzá a Játékmester módhoz.
+
+**Ha új admin fiókot szeretne létrehozni SQL-ben:**
+```sql
+USE damareen_game;
+
+-- Példa: új admin fiók létrehozása
+-- Jelszó: admin123 (bcrypt hash)
+INSERT INTO users (username, email, password_hash) VALUES 
+('admin', 'admin@example.com', '$2b$10$YourBcryptHashHere');
+```
+
+**Fontos:** Az admin jogosultság a kódban van hardcoded (`user.username === 'admin'`), így csak az `admin` nevű felhasználó kap admin jogokat.
+
+---
+
+### API Dokumentáció
+
+#### Autentikáció Endpoints
+
+##### POST `/api/auth/register`
+Új felhasználó regisztrációja.
+
+**Request Body:**
+```json
+{
+  "username": "string (kötelező)",
+  "email": "string (kötelező, email formátum)",
+  "password": "string (kötelező, min 6 karakter)"
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "token": "jwt_token_string",
+  "user": {
+    "id": 1,
+    "username": "username",
+    "email": "email@example.com",
+    "tutorialCompleted": false
+  }
+}
+```
+
+**Hibák:**
+- `400`: Hiányzó mezők vagy validációs hiba
+- `500`: Szerver hiba
+
+---
+
+##### POST `/api/auth/login`
+Felhasználó bejelentkezése.
+
+**Request Body:**
+```json
+{
+  "username": "string (kötelező)",
+  "password": "string (kötelező)"
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "token": "jwt_token_string",
+  "user": {
+    "id": 1,
+    "username": "username",
+    "email": "email@example.com",
+    "tutorialCompleted": true
+  }
+}
+```
+
+**Hibák:**
+- `400`: Hiányzó mezők
+- `401`: Helytelen felhasználónév vagy jelszó
+- `500`: Szerver hiba
+
+---
+
+##### GET `/api/auth/me`
+Aktuális bejelentkezett felhasználó adatai.
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Response (200):**
+```json
+{
+  "id": 1,
+  "username": "username",
+  "email": "email@example.com",
+  "tutorialCompleted": true
+}
+```
+
+**Hibák:**
+- `401`: Nincs autentikáció vagy lejárt token
+- `500`: Szerver hiba
+
+---
+
+##### PUT `/api/auth/tutorial-complete`
+Tutorial befejezettként jelölése.
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Response (200):**
+```json
+{
+  "success": true
+}
+```
+
+---
+
+#### Environment Endpoints
+
+##### GET `/api/environments`
+Felhasználó összes környezetének lekérése.
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Response (200):**
+```json
+[
+  {
+    "id": "environment_abc123",
+    "name": "Damareen Alapkor",
+    "worldCards": [
+      {
+        "id": "card_xyz789",
+        "name": "Tűz Harcos",
+        "damage": 10,
+        "health": 8,
+        "element": "fire",
+        "kind": "standard",
+        "backgroundImage": "/images/card_xyz789.jpg"
+      }
+    ],
+    "dungeons": [
+      {
+        "id": "dungeon_def456",
+        "name": "Első Próba",
+        "type": "encounter",
+        "cardOrder": ["card_xyz789"]
+      }
+    ]
+  }
+]
+```
+
+---
+
+##### POST `/api/environments`
+Új környezet létrehozása vagy meglévő frissítése.
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Request Body:**
+```json
+{
+  "id": "environment_abc123",
+  "name": "Új Környezet",
+  "worldCards": [...],
+  "dungeons": [...]
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "environment": { ... }
+}
+```
+
+---
+
+##### DELETE `/api/environments/:id`
+Környezet törlése.
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Response (200):**
+```json
+{
+  "success": true
+}
+```
+
+**Hibák:**
+- `404`: Környezet nem található
+- `403`: Nincs jogosultság
+
+---
+
+#### Player Endpoints
+
+##### GET `/api/players`
+Felhasználó összes játékosának lekérése.
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Response (200):**
+```json
+[
+  {
+    "id": "player_abc123",
+    "name": "Kalandozó",
+    "environmentId": "environment_xyz789",
+    "collection": [
+      {
+        "cardId": "card_def456",
+        "damageBonus": 2,
+        "healthBonus": 1
+      }
+    ],
+    "deck": [
+      { "cardId": "card_def456" }
+    ],
+    "battleHistory": [
+      {
+        "dungeonId": "dungeon_ghi789",
+        "playerWins": 3,
+        "dungeonWins": 0,
+        "playerVictory": true,
+        "timestamp": 1699564800000
+      }
+    ]
+  }
+]
+```
+
+---
+
+##### POST `/api/players`
+Új játékos létrehozása.
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Request Body:**
+```json
+{
+  "id": "player_abc123",
+  "name": "Új Játékos",
+  "environmentId": "environment_xyz789",
+  "collection": [...],
+  "deck": [],
+  "battleHistory": []
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "player": { ... }
+}
+```
+
+---
+
+##### PUT `/api/players/:id`
+Játékos frissítése.
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Request Body:**
+```json
+{
+  "name": "Frissített Név",
+  "collection": [...],
+  "deck": [...],
+  "battleHistory": [...]
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true
+}
+```
+
+---
+
+##### DELETE `/api/players/:id`
+Játékos törlése.
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Response (200):**
+```json
+{
+  "success": true
+}
+```
+
+---
+
+#### Image Generation Endpoint
+
+##### POST `/api/generate-image`
+AI kép generálás kártyákhoz (OpenAI DALL-E).
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Request Body:**
+```json
+{
+  "prompt": "Tűz Harcos"
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "path": "/images/card_abc123.jpg"
+}
+```
+
+**Megjegyzés:** A működéshez szükséges az `OPENAI_API_KEY` a `.env` fájlban.
+
+---
+
+### Adatbázis Séma
+
+#### Táblák Áttekintése
+
+**users** - Felhasználói fiókok
+```sql
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    tutorial_completed BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+**environments** - Játékkörnyezetek
+```sql
+CREATE TABLE environments (
+    id VARCHAR(100) PRIMARY KEY,
+    user_id INT NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+```
+
+**world_cards** - Kártyák
+```sql
+CREATE TABLE world_cards (
+    id VARCHAR(100) PRIMARY KEY,
+    environment_id VARCHAR(100) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    damage INT NOT NULL,
+    health INT NOT NULL,
+    element ENUM('earth', 'water', 'air', 'fire') NOT NULL,
+    kind ENUM('standard', 'leader') NOT NULL,
+    source_card_id VARCHAR(100) NULL,
+    background_image VARCHAR(500) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (environment_id) REFERENCES environments(id) ON DELETE CASCADE
+);
+```
+
+**dungeons** - Kazamaták
+```sql
+CREATE TABLE dungeons (
+    id VARCHAR(100) PRIMARY KEY,
+    environment_id VARCHAR(100) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    type ENUM('encounter', 'minor', 'major') NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (environment_id) REFERENCES environments(id) ON DELETE CASCADE
+);
+```
+
+**dungeon_card_order** - Kazamata kártya sorrend
+```sql
+CREATE TABLE dungeon_card_order (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    dungeon_id VARCHAR(100) NOT NULL,
+    card_id VARCHAR(100) NOT NULL,
+    position INT NOT NULL,
+    FOREIGN KEY (dungeon_id) REFERENCES dungeons(id) ON DELETE CASCADE,
+    FOREIGN KEY (card_id) REFERENCES world_cards(id) ON DELETE CASCADE
+);
+```
+
+**player_profiles** - Játékos profilok
+```sql
+CREATE TABLE player_profiles (
+    id VARCHAR(100) PRIMARY KEY,
+    user_id INT NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    environment_id VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (environment_id) REFERENCES environments(id) ON DELETE CASCADE
+);
+```
+
+**player_cards** - Játékos kártya gyűjtemény
+```sql
+CREATE TABLE player_cards (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    player_id VARCHAR(100) NOT NULL,
+    card_id VARCHAR(100) NOT NULL,
+    damage_bonus INT NOT NULL,
+    health_bonus INT NOT NULL,
+    FOREIGN KEY (player_id) REFERENCES player_profiles(id) ON DELETE CASCADE,
+    FOREIGN KEY (card_id) REFERENCES world_cards(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_player_card (player_id, card_id)
+);
+```
+
+**player_deck** - Játékos pakli
+```sql
+CREATE TABLE player_deck (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    player_id VARCHAR(100) NOT NULL,
+    card_id VARCHAR(100) NOT NULL,
+    position INT NOT NULL,
+    FOREIGN KEY (player_id) REFERENCES player_profiles(id) ON DELETE CASCADE,
+    FOREIGN KEY (card_id) REFERENCES world_cards(id) ON DELETE CASCADE
+);
+```
+
+**battle_history** - Harctörténet
+```sql
+CREATE TABLE battle_history (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    player_id VARCHAR(100) NOT NULL,
+    dungeon_id VARCHAR(100) NOT NULL,
+    player_wins INT NOT NULL,
+    dungeon_wins INT NOT NULL,
+    player_victory BOOLEAN NOT NULL,
+    timestamp BIGINT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (player_id) REFERENCES player_profiles(id) ON DELETE CASCADE,
+    FOREIGN KEY (dungeon_id) REFERENCES dungeons(id) ON DELETE CASCADE
+);
+```
+
+#### Kapcsolatok
+
+```
+users (1) ─── (N) environments
+users (1) ─── (N) player_profiles
+
+environments (1) ─── (N) world_cards
+environments (1) ─── (N) dungeons
+environments (1) ─── (N) player_profiles
+
+dungeons (1) ─── (N) dungeon_card_order ─── (1) world_cards
+
+player_profiles (1) ─── (N) player_cards ─── (1) world_cards
+player_profiles (1) ─── (N) player_deck ─── (1) world_cards
+player_profiles (1) ─── (N) battle_history ─── (1) dungeons
+```
+
+---
+
+### Fejlesztési Parancsok
+
+#### Frontend Parancsok
+
+```bash
+# Fejlesztői szerver indítása (hot reload)
+npm run dev
+
+# Production build
+npm run build
+
+# Build előnézet
+npm run preview
+
+# Linting
+npm run lint
+
+# Type checking
+npx tsc --noEmit
+
+# Tesztek futtatása
+npm test
+```
+
+#### Backend Parancsok
+
+```bash
+cd backend
+
+# Szerver indítása
+npm start
+
+# Fejlesztői mód (nodemon-nal, ha telepítve)
+npm run dev
+
+# Adatbázis inicializálás
+npm run init-db
+
+# Adatbázis újraindítás (törli az adatokat!)
+npm run init-db -- --force
+```
+
+**Figyelem:** Az `init-db --force` parancs törli az összes meglévő adatot!
+
+#### Hasznos Git Parancsok
+
+```bash
+# Státusz ellenőrzés
+git status
+
+# Változások commitolása
+git add .
+git commit -m "Feature: új funkció leírása"
+
+# Push távoli repo-ba
+git push origin main
+
+# Branch létrehozása
+git checkout -b feature/new-feature
+
+# Branch merge
+git checkout main
+git merge feature/new-feature
+```
+
+---
+
+### Tesztelés
+
+#### Unit Tesztek
+
+**Harc logika tesztek:**
+```bash
+npm test src/utils/battle.test.ts
+```
+
+**Jutalom logika tesztek:**
+```bash
+npm test src/utils/rewards.test.ts
+```
+
+**Összes teszt futtatása:**
+```bash
+npm test
+```
+
+#### Teszt Lefedettség
+
+**Jelenleg tesztelt modulok:**
+- ✅ `battle.ts` - Harc mechanika
+- ✅ `rewards.ts` - Jutalom alkalmazás
+- ⚠️ API endpoints - Nincs automatizált teszt
+- ⚠️ React komponensek - Nincs automatizált teszt
+
+#### Manuális Tesztelés
+
+**Tesztelési checklist:**
+- [ ] Regisztráció új felhasználóval
+- [ ] Bejelentkezés meglévő felhasználóval
+- [ ] Környezet létrehozása
+- [ ] Alap kártya hozzáadása
+- [ ] Vezér kártya létrehozása
+- [ ] Kazamata létrehozása
+- [ ] Játékmenet indítása
+- [ ] Pakli építés
+- [ ] Harc indítása és győzelem
+- [ ] Jutalom alkalmazása
+- [ ] Harctörténet megtekintése
+- [ ] Téma váltás
+- [ ] Nyelv váltás
+- [ ] Kijelentkezés
+
+---
+
+### Biztonsági Megfontolások
+
+#### Implementált Biztonsági Intézkedések
+
+**1. Jelszó Biztonság**
+- ✅ Bcrypt hash (10 rounds)
+- ✅ Minimum 6 karakteres jelszó követelmény
+- ✅ Jelszavak soha nem kerülnek logolásra
+
+**2. Autentikáció**
+- ✅ JWT token alapú
+- ✅ 7 napos token lejárat
+- ✅ Token tárolás localStorage-ban
+- ✅ Automatikus token ellenőrzés minden API hívásnál
+
+**3. Autorizáció**
+- ✅ Minden védett endpoint ellenőrzi a tokent
+- ✅ Felhasználók csak saját adataikat látják
+- ✅ User ID a tokenből származik (nem a kérésből)
+
+**4. SQL Injection Védelem**
+- ✅ Prepared statements használata
+- ✅ Paraméterizált lekérdezések
+- ✅ Nincs közvetlen string konkatenáció SQL-ben
+
+**5. XSS Védelem**
+- ✅ React automatikus escape-elése
+- ✅ Nincs `dangerouslySetInnerHTML` használat
+- ✅ Input validáció és sanitizáció
+
+**6. CORS**
+- ✅ CORS engedélyezve fejlesztéshez
+- ⚠️ Production-ben korlátozni kell a domain-eket
+
+#### Biztonsági Javaslatok Production-höz
+
+**1. Környezeti Változók**
+```bash
+# Erős JWT secret (min 32 karakter)
+JWT_SECRET=$(openssl rand -base64 32)
+
+# Biztonságos adatbázis jelszó
+DB_PASSWORD=$(openssl rand -base64 24)
+```
+
+**2. HTTPS Használata**
+- Mindig használj HTTPS-t production-ben
+- Let's Encrypt ingyenes SSL tanúsítványok
+
+**3. Rate Limiting**
+```javascript
+// Példa: express-rate-limit használata
+import rateLimit from 'express-rate-limit';
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 perc
+  max: 100 // max 100 kérés
+});
+
+app.use('/api/', limiter);
+```
+
+**4. Helmet.js Használata**
+```javascript
+import helmet from 'helmet';
+app.use(helmet());
+```
+
+**5. Input Validáció**
+- Minden user input validálása
+- Whitelist alapú validáció
+- Hossz és típus ellenőrzések
+
+**6. Adatbázis Biztonsági Beállítások**
+```sql
+-- Dedikált user létrehozása (ne root-ot használj)
+CREATE USER 'damareen_user'@'localhost' IDENTIFIED BY 'strong_password';
+GRANT SELECT, INSERT, UPDATE, DELETE ON damareen_game.* TO 'damareen_user'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+**7. Logging és Monitoring**
+- Minden sikertelen bejelentkezés logolása
+- Gyanús aktivitás figyelése
+- Error tracking (pl. Sentry)
+
+---
+
+### Kód Stílus és Konvenciók
+
+#### TypeScript/JavaScript
+
+**Naming Conventions:**
+- `camelCase` - változók, függvények
+- `PascalCase` - komponensek, típusok, interfészek
+- `UPPER_SNAKE_CASE` - konstansok
+- `kebab-case` - fájlnevek (CSS, assets)
+
+**Példák:**
+```typescript
+// Változók és függvények
+const userName = 'John';
+function calculateDamage() { }
+
+// Komponensek és típusok
+interface PlayerProfile { }
+function BattleScene() { }
+
+// Konstansok
+const MAX_DECK_SIZE = 6;
+const ELEMENT_ADVANTAGE = { };
+```
+
+#### React Komponensek
+
+**Funkcionális komponensek TypeScript-tel:**
+```typescript
+interface MyComponentProps {
+  title: string;
+  onSave: (data: string) => void;
+}
+
+export function MyComponent({ title, onSave }: MyComponentProps) {
+  return <div>{title}</div>;
+}
+```
+
+**Hooks használat:**
+```typescript
+// State
+const [count, setCount] = useState<number>(0);
+
+// Effect
+useEffect(() => {
+  // effect logic
+  return () => {
+    // cleanup
+  };
+}, [dependencies]);
+
+// Custom hooks
+function useCustomHook() {
+  // hook logic
+  return { data, loading };
+}
+```
+
+#### CSS
+
+**BEM-szerű naming:**
+```css
+.component-name { }
+.component-name__element { }
+.component-name--modifier { }
+```
+
+**CSS Variables használata:**
+```css
+:root {
+  --color-primary: #007bff;
+  --spacing-unit: 8px;
+}
+
+.button {
+  background: var(--color-primary);
+  padding: var(--spacing-unit);
+}
+```
+
+---
+
+### Gyakori Problémák és Megoldások
+
+#### Backend Problémák
+
+**1. "Error connecting to MySQL database"**
+
+**Okok:**
+- MySQL szerver nem fut
+- Rossz credentials a `.env` fájlban
+- Adatbázis nem létezik
+
+**Megoldás:**
+```bash
+# Ellenőrizze, hogy fut-e a MySQL
+# Windows:
+net start MySQL80
+
+# macOS:
+brew services start mysql
+
+# Linux:
+sudo systemctl start mysql
+
+# Tesztelje a kapcsolatot
+mysql -u root -p -e "SHOW DATABASES;"
+
+# Futtassa az init scriptet
+cd backend
+npm run init-db
+```
+
+---
+
+**2. "Nincs autentikáció" hiba**
+
+**Okok:**
+- Backend nem fut
+- Token lejárt
+- Rossz JWT_SECRET
+
+**Megoldás:**
+```bash
+# Ellenőrizze a backend futását
+curl http://localhost:3001/api/auth/me
+
+# Jelentkezzen be újra
+# Ellenőrizze a JWT_SECRET-et a .env-ben
+```
+
+---
+
+**3. "Port already in use"**
+
+**Okok:**
+- Másik folyamat használja a portot
+
+**Megoldás:**
+```bash
+# Windows:
+netstat -ano | findstr :3001
+taskkill /PID <PID> /F
+
+# macOS/Linux:
+lsof -i :3001
+kill -9 <PID>
+
+# Vagy változtassa meg a portot a .env-ben
+PORT=3002
+```
+
+---
+
+#### Frontend Problémák
+
+**1. "Cannot connect to backend"**
+
+**Okok:**
+- Backend nem fut
+- Rossz API URL
+
+**Megoldás:**
+```typescript
+// Ellenőrizze az API URL-t src/services/api.ts-ben
+const API_URL = 'http://localhost:3001';
+
+// Indítsa el a backend-et
+cd backend
+npm start
+```
+
+---
+
+**2. "Module not found" hibák**
+
+**Okok:**
+- Hiányzó dependencies
+
+**Megoldás:**
+```bash
+# Telepítsd újra a függőségeket
+rm -rf node_modules package-lock.json
+npm install
+
+# Vagy
+npm ci
+```
+
+---
+
+**3. TypeScript hibák**
+
+**Okok:**
+- Típus inkonzisztencia
+
+**Megoldás:**
+```bash
+# Futtasson type check-et
+npx tsc --noEmit
+
+# Nézze meg a hibákat és javítsa
+```
+
+---
+
+#### Adatbázis Problémák
+
+**1. "Table doesn't exist"**
+
+**Megoldás:**
+```bash
+# Futtasd újra a database.sql-t
+mysql -u root -p < backend/database.sql
+
+# Vagy
+cd backend
+npm run init-db
+```
+
+---
+
+**2. "Duplicate entry" hiba**
+
+**Okok:**
+- Unique constraint megsértése
+
+**Megoldás:**
+- Használjon más felhasználónevet/email-t
+- Vagy törölje a meglévő rekordot
+
+---
+
+**3. Adatok elvesztek**
+
+**Megelőzés:**
+```bash
+# Rendszeres backup
+mysqldump -u root -p damareen_game > backup_$(date +%Y%m%d).sql
+
+# Visszaállítás
+mysql -u root -p damareen_game < backup_20231109.sql
+```
+
+---
+
+### Performance Optimalizáció
+
+#### Frontend Optimalizáció
+
+**1. React Memoization**
+```typescript
+// Komponens memoization
+export const ExpensiveComponent = React.memo(({ data }) => {
+  return <div>{data}</div>;
+});
+
+// Hook memoization
+const memoizedValue = useMemo(() => {
+  return expensiveCalculation(a, b);
+}, [a, b]);
+
+const memoizedCallback = useCallback(() => {
+  doSomething(a, b);
+}, [a, b]);
+```
+
+**2. Lazy Loading**
+```typescript
+// Komponens lazy loading
+const BattleScene = React.lazy(() => import('./components/BattleScene'));
+
+// Használat Suspense-szal
+<Suspense fallback={<Loading />}>
+  <BattleScene />
+</Suspense>
+```
+
+**3. Virtual Scrolling**
+- Nagy listák esetén (100+ elem)
+- Használjon `react-window` vagy `react-virtualized` library-t
+
+#### Backend Optimalizáció
+
+**1. Database Indexing**
+```sql
+-- Már implementált indexek
+CREATE INDEX idx_username ON users(username);
+CREATE INDEX idx_user_id ON environments(user_id);
+CREATE INDEX idx_player_id ON player_cards(player_id);
+```
+
+**2. Query Optimalizáció**
+```javascript
+// Rossz: N+1 query probléma
+for (const player of players) {
+  const cards = await db.query('SELECT * FROM player_cards WHERE player_id = ?', [player.id]);
+}
+
+// Jó: JOIN használata
+const playersWithCards = await db.query(`
+  SELECT p.*, pc.card_id, pc.damage_bonus, pc.health_bonus
+  FROM player_profiles p
+  LEFT JOIN player_cards pc ON p.id = pc.player_id
+  WHERE p.user_id = ?
+`, [userId]);
+```
+
+**3. Caching**
+```javascript
+// Példa: Node-cache használata
+import NodeCache from 'node-cache';
+const cache = new NodeCache({ stdTTL: 600 }); // 10 perc
+
+app.get('/api/environments', authMiddleware, async (req, res) => {
+  const cacheKey = `environments_${req.userId}`;
+  const cached = cache.get(cacheKey);
+  
+  if (cached) {
+    return res.json(cached);
+  }
+  
+  const environments = await getEnvironments(req.userId);
+  cache.set(cacheKey, environments);
+  res.json(environments);
+});
+```
+
+**Megjegyzés:** A cache használata jelentősen csökkentheti az adatbázis terhelést.
+
+---
+
+### Deployment
+
+#### Production Build
+
+**Frontend:**
+```bash
+# Build
+npm run build
+
+# A dist/ mappa tartalmazza a statikus fájlokat
+# Ezeket szolgáld ki egy web szerverrel (nginx, Apache, stb.)
+```
+
+**Backend:**
+```bash
+# Állítsa be a production környezetet
+NODE_ENV=production
+
+# Használjon process manager-t (PM2)
+npm install -g pm2
+pm2 start server.js --name damareen-backend
+pm2 save
+pm2 startup
+```
+
+**Megjegyzés:** A PM2 automatikusan újraindítja a szervert hiba vagy rendszer újraindítás esetén.
+
+#### Docker Deployment
+
+**Dockerfile (Backend):**
+```dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY backend/package*.json ./
+RUN npm ci --only=production
+
+COPY backend/ ./
+
+EXPOSE 3001
+
+CMD ["node", "server.js"]
+```
+
+**Dockerfile (Frontend):**
+```dockerfile
+FROM node:18-alpine as build
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+**docker-compose.yml:**
+```yaml
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: damareen_game
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/database.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "3306:3306"
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    environment:
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: rootpassword
+      DB_NAME: damareen_game
+      JWT_SECRET: your_secret_key
+    ports:
+      - "3001:3001"
+    depends_on:
+      - mysql
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:
+```
+
+**Indítás:**
+```bash
+docker-compose up -d
+```
+
+---
+
+### Hozzájárulás a Projekthez
+
+#### Git Workflow
+
+**1. Fork és Clone**
+```bash
+git clone <your-fork-url>
+cd dusza_web_25_26
+git remote add upstream <original-repo-url>
+```
+
+**2. Feature Branch Létrehozása**
+```bash
+git checkout -b feature/my-new-feature
+```
+
+**3. Változások Commitolása**
+```bash
+git add .
+git commit -m "Feature: rövid leírás
+
+Részletes leírás a változásokról.
+Több sor is lehet."
+```
+
+**4. Push és Pull Request**
+```bash
+git push origin feature/my-new-feature
+# Nyisson egy Pull Request-et a GitHub-on
+```
+
+#### Commit Message Konvenció
+
+**Formátum:**
+```
+<type>: <subject>
+
+<body>
+
+<footer>
+```
+
+**Típusok:**
+- `feat`: Új funkció
+- `fix`: Hibajavítás
+- `docs`: Dokumentáció
+- `style`: Formázás, whitespace
+- `refactor`: Kód refaktorálás
+- `test`: Tesztek hozzáadása
+- `chore`: Build, config változások
+
+**Példák:**
+```
+feat: add battle animation sound effects
+
+Added background music and sound effects to the battle scene.
+The audio plays automatically when the battle starts.
+
+Closes #123
+```
+
+```
+fix: prevent duplicate cards in dungeon
+
+Fixed a bug where the same standard card could be added
+multiple times to a dungeon lineup.
+
+Fixes #456
+```
+
+---
+
+### Licensz és Jogi Információk
+
+**Licensz:** ISC
+
+**Copyright:** © 2025 Damareen Development Team
+
+**Verseny:** DUSZA 2025/26 Web-Mobile Qualifier
+
+**Harmadik Féltől Származó Könyvtárak:**
+- React - MIT License
+- Express - MIT License
+- MySQL2 - MIT License
+- Bcrypt - MIT License
+- JWT - MIT License
+
+---
+
+### Kapcsolat és Támogatás
+
+**Hibák Jelentése:**
+- GitHub Issues: `<repository-url>/issues`
+- Email: `your-email@example.com`
+
+**Dokumentáció:**
+- README.md (ez a fájl)
+- Inline kód kommentek
+- TypeScript típusdefiníciók
+
+**Közösség:**
+- Discord: `<discord-invite-link>`
+- Forum: `<forum-url>`
+
+**Megjegyzés:** Kérjük, hogy a hibák jelentésekor adjon meg minél több részletet (böngésző, operációs rendszer, lépések a hiba reprodukálásához).
+
+---
+
+### Változásnapló (Changelog)
+
+#### v2.0.0 (2025-11-09)
+- ✨ MySQL adatbázis integráció
+- ✨ Felhasználói autentikáció (JWT)
+- ✨ Többfelhasználós támogatás
+- ✨ Backend API (Express)
+- ✨ Biztonságos jelszó tárolás (bcrypt)
+- ✨ Tutorial rendszer
+- 🐛 Számos bug javítás
+
+#### v1.0.0 (2025-10-15)
+- ✨ Kezdeti verzió
+- ✨ Játékmester mód
+- ✨ Játékos mód
+- ✨ Harc rendszer
+- ✨ Többnyelvűség (hu, en, de)
+- ✨ Téma váltás
+- ✨ LocalStorage perzisztencia
+
+---
+
+### Köszönetnyilvánítás
+
+**Fejlesztők:**
+- [Neved] - Lead Developer
+- [Csapattársak nevei]
+
+**Különleges Köszönet:**
+- DUSZA verseny szervezői
+- React és Node.js közösségek
+- Minden tesztelő és visszajelző
+
+---
+
+### Függelék
+
+#### Hasznos Linkek
+
+**Dokumentációk:**
+- [React Docs](https://react.dev/)
+- [TypeScript Docs](https://www.typescriptlang.org/docs/)
+- [Express Docs](https://expressjs.com/)
+- [MySQL Docs](https://dev.mysql.com/doc/)
+
+**Eszközök:**
+- [Vite](https://vitejs.dev/)
+- [ESLint](https://eslint.org/)
+- [Vitest](https://vitest.dev/)
+
+**Inspirációk:**
+- [Hearthstone](https://playhearthstone.com/)
+- [Magic: The Gathering Arena](https://magic.wizards.com/en/mtgarena)
+
+---
+
+## 🎮 Élvezze a Játékot!
+
+Ha bármilyen kérdése van, ne habozzon feltenni a GitHub Issues-ban vagy kapcsolatba lépni velünk!
+
+**Happy Coding! 🚀**
