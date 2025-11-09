@@ -108,7 +108,7 @@ A Játékmester mód lehetővé teszi játékkörnyezetek, kártyák és kazamat
    - **Életerő**: 1-100 közötti érték
    - **Elem**: Válasszon egyet (Föld, Víz, Levegő, Tűz)
 4. Kattintson a **"Kártya hozzáadása"** gombra
-5. Opcionálisan generálhat AI képet a kártyához
+5. AI képet generál a kártyához
 
 **Elemek:**
 - 🌍 **Föld** (Earth)
