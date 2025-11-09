@@ -1915,34 +1915,6 @@ select option {
   .app-nav {
     padding: 0.75rem 1.25rem;
   }
-
-  .mobile-clickable::after {
-    content: '👆';
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    font-size: 1.2rem;
-    opacity: 0.7;
-    pointer-events: none;
-    z-index: 10;
-    animation: tap-hint 2s ease-in-out infinite;
-  }
-
-  .mobile-clickable.is-disabled::after {
-    content: '✓';
-    opacity: 0.9;
-  }
-
-  @keyframes tap-hint {
-    0%, 100% {
-      transform: scale(1);
-      opacity: 0.7;
-    }
-    50% {
-      transform: scale(1.2);
-      opacity: 1;
-    }
-  }
 }
 
 @media (max-width: 640px) {

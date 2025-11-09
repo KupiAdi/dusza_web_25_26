@@ -149,6 +149,9 @@
 
   .tutorial-tooltip-center {
     max-width: calc(100vw - 40px);
+    left: 50% !important;
+    right: auto;
+    transform: translate(-50%, -50%);
   }
 
   .tutorial-tooltip-title {
