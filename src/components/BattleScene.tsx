@@ -75,7 +75,7 @@ export function BattleScene({ result, environment, playerCards, onComplete, onRe
   }, [isMuted])
 
   const toggleMute = () => {
-    setIsMuted((prev) => !prev)
+    setIsMuted((prev: boolean) => !prev)
   }
 
   useEffect(() => {

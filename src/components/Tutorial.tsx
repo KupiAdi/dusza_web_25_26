@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTutorial } from '../state/TutorialContext'
 import { useTranslation } from '../state/LanguageContext'
 import './Tutorial.css'

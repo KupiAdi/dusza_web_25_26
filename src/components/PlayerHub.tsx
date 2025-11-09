@@ -50,7 +50,7 @@ export function PlayerHub({
   defaultEnvironmentId,
 }: PlayerHubProps) {
   const { t } = useTranslation()
-  const { currentStep, isActive: tutorialActive, markStepComplete, nextStep } = useTutorial()
+  const { currentStep, isActive: tutorialActive, markStepComplete } = useTutorial()
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
   const [newGameName, setNewGameName] = useState('')
   const [deckDraft, setDeckDraft] = useState<DeckEntry[]>([])
