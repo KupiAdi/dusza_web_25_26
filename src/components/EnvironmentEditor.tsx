@@ -89,7 +89,6 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
     try {
       const { api } = await import('../services/api')
       const data = await api.generateImage(cardName)
-      console.log('🖼️ Image API response:', cardName, data)
       return data.path
     } catch (error) {
       console.error('Error while generating image:', error)
@@ -155,23 +154,27 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
     setStandardForm({ name: '', damage: '2', health: '2', element: 'earth' })
     withFeedback(t('environment.feedback.cardAdded'))
 
-    setTimeout(async () => {
-      const backgroundImage = await generateCardImage(cardName)
+    // Wait for image generation in background, then update after a delay
+    generateCardImage(cardName).then(async (backgroundImage) => {
       if (backgroundImage) {
-        const currentEnv = environmentRef.current
-        const cardExists = currentEnv.worldCards.some((card) => card.id === newCardId)
-        if (cardExists) {
+        try {
+          await new Promise(resolve => setTimeout(resolve, 500))
+          
+          const { api } = await import('../services/api')
+          await api.updateCardImage(environment.id, newCardId, backgroundImage)
+          
+          const currentEnv = environmentRef.current
           onSave({
             ...currentEnv,
-            worldCards: currentEnv.worldCards.map((card) =>
-              card.id === newCardId
-                ? { ...card, backgroundImage }
-                : card
+            worldCards: currentEnv.worldCards.map(card =>
+              card.id === newCardId ? { ...card, backgroundImage } : card
             ),
           })
+        } catch (error) {
+          console.error('Failed to update card image:', error)
         }
       }
-    }, 200)
+    })
   }
 
   async function handleLeaderSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -210,23 +213,27 @@ export function EnvironmentEditor({ environment, onSave }: EnvironmentEditorProp
     setLeaderForm({ baseCardId: '', name: '', mode: 'double-damage' })
     withFeedback(t('environment.feedback.leaderAdded'))
 
-    setTimeout(async () => {
-      const backgroundImage = await generateCardImage(cardName)
+    // Wait for image generation in background, then update after a delay
+    generateCardImage(cardName).then(async (backgroundImage) => {
       if (backgroundImage) {
-        const currentEnv = environmentRef.current
-        const cardExists = currentEnv.worldCards.some((card) => card.id === newCardId)
-        if (cardExists) {
+        try {
+          await new Promise(resolve => setTimeout(resolve, 500))
+          
+          const { api } = await import('../services/api')
+          await api.updateCardImage(environment.id, newCardId, backgroundImage)
+          
+          const currentEnv = environmentRef.current
           onSave({
             ...currentEnv,
-            worldCards: currentEnv.worldCards.map((card) =>
-              card.id === newCardId
-                ? { ...card, backgroundImage }
-                : card
+            worldCards: currentEnv.worldCards.map(card =>
+              card.id === newCardId ? { ...card, backgroundImage } : card
             ),
           })
+        } catch (error) {
+          console.error('Failed to update leader card image:', error)
         }
       }
-    }, 200)
+    })
   }
 
 

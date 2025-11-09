@@ -66,10 +66,8 @@ export function PlayerHub({
   const selectedPlayer = players.find((player) => player.id === selectedPlayerId) ?? null
   const playerEnvironment = environments.find((env) => env.id === selectedPlayer?.environmentId) ?? null
 
-  // Detect mobile/touch view
   useEffect(() => {
     const checkMobileOrTouch = () => {
-      // Check if device has touch capability OR is narrow screen
       const hasTouchScreen = 
         'ontouchstart' in window ||
         navigator.maxTouchPoints > 0 ||
@@ -82,7 +80,6 @@ export function PlayerHub({
     return () => window.removeEventListener('resize', checkMobileOrTouch)
   }, [])
 
-  // Clear selected player if switching to different environment
   useEffect(() => {
     if (selectedPlayer && selectedPlayer.environmentId !== defaultEnvironmentId) {
       setSelectedPlayerId(null)

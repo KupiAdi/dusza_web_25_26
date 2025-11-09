@@ -95,6 +95,16 @@ class ApiService {
     );
   }
 
+  async updateCardImage(envId: string, cardId: string, backgroundImage: string) {
+    return this.request<{ success: boolean; message: string }>(
+      `/api/environments/${envId}/cards/${cardId}/image`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ backgroundImage }),
+      }
+    );
+  }
+
   // Player endpoints
   async getPlayers() {
     return this.request<{ players: any[] }>('/api/players');

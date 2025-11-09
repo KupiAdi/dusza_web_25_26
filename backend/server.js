@@ -17,22 +17,18 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// Biztosítjuk, hogy a public/images mappa létezik
 const imagesDir = join(__dirname, '..', 'public', 'images');
 if (!existsSync(imagesDir)) {
   mkdirSync(imagesDir, { recursive: true });
 }
 
-// Statikus fájlok kiszolgálása az images mappából
 app.use('/images', express.static(imagesDir));
 
 // ==================== AUTH ENDPOINTS ====================
 
-// Register
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -45,7 +41,6 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ error: 'A jelszónak legalább 6 karakter hosszúnak kell lennie' });
     }
 
-    // Check if user exists
     const [existingUsers] = await db.query(
       'SELECT id FROM users WHERE username = ? OR email = ?',
       [username, email]
@@ -55,10 +50,8 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ error: 'A felhasználónév vagy email már foglalt' });
     }
 
-    // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Create user
     const [result] = await db.query(
       'INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)',
       [username, email, passwordHash]
@@ -78,7 +71,6 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-// Login
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -87,7 +79,6 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ error: 'Felhasználónév és jelszó megadása kötelező' });
     }
 
-    // Find user
     const [users] = await db.query(
       'SELECT id, username, email, password_hash FROM users WHERE username = ?',
       [username]
@@ -99,7 +90,6 @@ app.post('/api/auth/login', async (req, res) => {
 
     const user = users[0];
 
-    // Verify password
     const isValid = await bcrypt.compare(password, user.password_hash);
 
     if (!isValid) {
@@ -119,7 +109,6 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-// Get current user
 app.get('/api/auth/me', authMiddleware, async (req, res) => {
   try {
     const [users] = await db.query(
@@ -140,10 +129,8 @@ app.get('/api/auth/me', authMiddleware, async (req, res) => {
 
 // ==================== ENVIRONMENT ENDPOINTS ====================
 
-// Get all environments for current user
 app.get('/api/environments', authMiddleware, async (req, res) => {
   try {
-    // Get the current user's username to check if admin
     const [currentUser] = await db.query(
       'SELECT username FROM users WHERE id = ?',
       [req.user.userId]
@@ -153,13 +140,11 @@ app.get('/api/environments', authMiddleware, async (req, res) => {
     
     let environments;
     if (isAdmin) {
-      // Admin sees only their own environments
       [environments] = await db.query(
         'SELECT id, name, created_at, updated_at FROM environments WHERE user_id = ?',
         [req.user.userId]
       );
     } else {
-      // Non-admin users see environments created by admin
       const [adminUser] = await db.query(
         'SELECT id FROM users WHERE username = ?',
         ['admin']
@@ -175,22 +160,18 @@ app.get('/api/environments', authMiddleware, async (req, res) => {
       );
     }
 
-    // For each environment, get cards and dungeons
     const enrichedEnvironments = await Promise.all(
       environments.map(async (env) => {
-        // Get world cards
         const [worldCards] = await db.query(
           'SELECT id, name, damage, health, element, kind, source_card_id as sourceCardId, background_image as backgroundImage FROM world_cards WHERE environment_id = ?',
           [env.id]
         );
 
-        // Get dungeons
         const [dungeons] = await db.query(
           'SELECT id, name, type FROM dungeons WHERE environment_id = ?',
           [env.id]
         );
 
-        // For each dungeon, get card order
         const dungeonsWithCards = await Promise.all(
           dungeons.map(async (dungeon) => {
             const [cardOrder] = await db.query(
@@ -220,11 +201,9 @@ app.get('/api/environments', authMiddleware, async (req, res) => {
   }
 });
 
-// Create or update environment
 app.post('/api/environments', authMiddleware, async (req, res) => {
   const connection = await db.getConnection();
   try {
-    // Check if user is admin
     const [currentUser] = await connection.query(
       'SELECT username FROM users WHERE id = ?',
       [req.user.userId]
@@ -239,31 +218,26 @@ app.post('/api/environments', authMiddleware, async (req, res) => {
     const { environment } = req.body;
     const { id, name, worldCards, dungeons } = environment;
 
-    // Check if environment exists
     const [existing] = await connection.query(
       'SELECT id FROM environments WHERE id = ? AND user_id = ?',
       [id, req.user.userId]
     );
 
     if (existing.length === 0) {
-      // Create new environment
       await connection.query(
         'INSERT INTO environments (id, user_id, name) VALUES (?, ?, ?)',
         [id, req.user.userId, name]
       );
     } else {
-      // Update existing environment
       await connection.query(
         'UPDATE environments SET name = ? WHERE id = ? AND user_id = ?',
         [name, id, req.user.userId]
       );
 
-      // Delete existing cards, dungeons, etc. (cascade will handle related data)
       await connection.query('DELETE FROM world_cards WHERE environment_id = ?', [id]);
       await connection.query('DELETE FROM dungeons WHERE environment_id = ?', [id]);
     }
 
-    // Insert world cards
     if (worldCards && worldCards.length > 0) {
       const cardValues = worldCards.map(card => [
         card.id,
@@ -283,7 +257,6 @@ app.post('/api/environments', authMiddleware, async (req, res) => {
       );
     }
 
-    // Insert dungeons
     if (dungeons && dungeons.length > 0) {
       for (const dungeon of dungeons) {
         await connection.query(
@@ -291,7 +264,6 @@ app.post('/api/environments', authMiddleware, async (req, res) => {
           [dungeon.id, id, dungeon.name, dungeon.type]
         );
 
-        // Insert dungeon card order
         if (dungeon.cardOrder && dungeon.cardOrder.length > 0) {
           const orderValues = dungeon.cardOrder.map((cardId, index) => [
             dungeon.id,
@@ -302,6 +274,67 @@ app.post('/api/environments', authMiddleware, async (req, res) => {
           await connection.query(
             'INSERT INTO dungeon_card_order (dungeon_id, card_id, position) VALUES ?',
             [orderValues]
+          );
+        }
+      }
+    }
+
+    const [validCards] = await connection.query(
+      'SELECT id, kind FROM world_cards WHERE environment_id = ?',
+      [id]
+    );
+    const validCardIds = validCards.map(card => card.id);
+    const standardCardIds = validCards.filter(card => card.kind === 'standard').map(card => card.id);
+
+    const [playersInEnv] = await connection.query(
+      'SELECT id FROM player_profiles WHERE environment_id = ?',
+      [id]
+    );
+
+    if (playersInEnv.length > 0) {
+      
+      if (validCardIds.length > 0) {
+        const placeholders = validCardIds.map(() => '?').join(',');
+
+        for (const player of playersInEnv) {
+          const [cardResult] = await connection.query(
+            `DELETE FROM player_cards WHERE player_id = ? AND card_id NOT IN (${placeholders})`,
+            [player.id, ...validCardIds]
+          );
+
+          const [deckResult] = await connection.query(
+            `DELETE FROM player_deck WHERE player_id = ? AND card_id NOT IN (${placeholders})`,
+            [player.id, ...validCardIds]
+          );
+
+          if (standardCardIds.length > 0) {
+            const standardPlaceholders = standardCardIds.map(() => '?').join(',');
+            
+            const [existingCards] = await connection.query(
+              `SELECT card_id FROM player_cards WHERE player_id = ? AND card_id IN (${standardPlaceholders})`,
+              [player.id, ...standardCardIds]
+            );
+            const existingCardIds = new Set(existingCards.map(row => row.card_id));
+            const newStandardCards = standardCardIds.filter(cardId => !existingCardIds.has(cardId));
+
+            if (newStandardCards.length > 0) {
+              const newCardValues = newStandardCards.map(cardId => [player.id, cardId, 0, 0]);
+              await connection.query(
+                'INSERT INTO player_cards (player_id, card_id, damage_bonus, health_bonus) VALUES ?',
+                [newCardValues]
+              );
+            }
+          }
+        }
+      } else {
+        for (const player of playersInEnv) {
+          await connection.query(
+            'DELETE FROM player_cards WHERE player_id = ?',
+            [player.id]
+          );
+          await connection.query(
+            'DELETE FROM player_deck WHERE player_id = ?',
+            [player.id]
           );
         }
       }
@@ -318,10 +351,49 @@ app.post('/api/environments', authMiddleware, async (req, res) => {
   }
 });
 
-// Delete environment
+// Update card background image
+app.patch('/api/environments/:envId/cards/:cardId/image', authMiddleware, async (req, res) => {
+  try {
+    const [currentUser] = await db.query(
+      'SELECT username FROM users WHERE id = ?',
+      [req.user.userId]
+    );
+    
+    if (currentUser.length === 0 || currentUser[0].username !== 'admin') {
+      return res.status(403).json({ error: 'Csak az admin felhasználó frissíthet kártyát' });
+    }
+
+    const { envId, cardId } = req.params;
+    const { backgroundImage } = req.body;
+
+    const [envCheck] = await db.query(
+      'SELECT id FROM environments WHERE id = ? AND user_id = ?',
+      [envId, req.user.userId]
+    );
+
+    if (envCheck.length === 0) {
+      return res.status(404).json({ error: 'Környezet nem található' });
+    }
+
+    // Update card background image
+    const [result] = await db.query(
+      'UPDATE world_cards SET background_image = ? WHERE id = ? AND environment_id = ?',
+      [backgroundImage || null, cardId, envId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Kártya nem található' });
+    }
+
+    res.json({ success: true, message: 'Kártya képe frissítve' });
+  } catch (error) {
+    console.error('Update card image error:', error);
+    res.status(500).json({ error: 'Hiba a kártya kép frissítése során' });
+  }
+});
+
 app.delete('/api/environments/:id', authMiddleware, async (req, res) => {
   try {
-    // Check if user is admin
     const [currentUser] = await db.query(
       'SELECT username FROM users WHERE id = ?',
       [req.user.userId]
@@ -351,7 +423,6 @@ app.delete('/api/environments/:id', authMiddleware, async (req, res) => {
 
 // ==================== PLAYER ENDPOINTS ====================
 
-// Get all players for current user
 app.get('/api/players', authMiddleware, async (req, res) => {
   try {
     const [players] = await db.query(
@@ -359,22 +430,18 @@ app.get('/api/players', authMiddleware, async (req, res) => {
       [req.user.userId]
     );
 
-    // For each player, get collection, deck, and battle history
     const enrichedPlayers = await Promise.all(
       players.map(async (player) => {
-        // Get collection
         const [collection] = await db.query(
           'SELECT card_id as cardId, damage_bonus as damageBonus, health_bonus as healthBonus FROM player_cards WHERE player_id = ?',
           [player.id]
         );
 
-        // Get deck
         const [deck] = await db.query(
           'SELECT card_id as cardId FROM player_deck WHERE player_id = ? ORDER BY position',
           [player.id]
         );
 
-        // Get battle history
         const [battles] = await db.query(
           'SELECT dungeon_id as dungeonId, player_wins as playerWins, dungeon_wins as dungeonWins, player_victory as playerVictory, timestamp FROM battle_history WHERE player_id = ? ORDER BY timestamp DESC',
           [player.id]
@@ -404,7 +471,6 @@ app.get('/api/players', authMiddleware, async (req, res) => {
   }
 });
 
-// Create player
 app.post('/api/players', authMiddleware, async (req, res) => {
   const connection = await db.getConnection();
   try {
@@ -413,7 +479,6 @@ app.post('/api/players', authMiddleware, async (req, res) => {
     const { player } = req.body;
     const { id, name, environmentId, collection, deck } = player;
 
-    // Verify environment exists (can be owned by admin or current user)
     const [envCheck] = await connection.query(
       'SELECT id FROM environments WHERE id = ?',
       [environmentId]
@@ -424,13 +489,11 @@ app.post('/api/players', authMiddleware, async (req, res) => {
       return res.status(404).json({ error: 'A környezet nem található' });
     }
 
-    // Create player
     await connection.query(
       'INSERT INTO player_profiles (id, user_id, name, environment_id) VALUES (?, ?, ?, ?)',
       [id, req.user.userId, name, environmentId]
     );
 
-    // Insert collection
     if (collection && collection.length > 0) {
       const collectionValues = collection.map(card => [
         id,
@@ -445,7 +508,6 @@ app.post('/api/players', authMiddleware, async (req, res) => {
       );
     }
 
-    // Insert deck
     if (deck && deck.length > 0) {
       const deckValues = deck.map((entry, index) => [
         id,
@@ -479,7 +541,6 @@ app.put('/api/players/:id', authMiddleware, async (req, res) => {
     const { id } = req.params;
     const { updates } = req.body;
 
-    // Verify player belongs to user
     const [playerCheck] = await connection.query(
       'SELECT id FROM player_profiles WHERE id = ? AND user_id = ?',
       [id, req.user.userId]
@@ -490,7 +551,6 @@ app.put('/api/players/:id', authMiddleware, async (req, res) => {
       return res.status(403).json({ error: 'Nincs hozzáférésed ehhez a játékoshoz' });
     }
 
-    // Update name if provided
     if (updates.name) {
       await connection.query(
         'UPDATE player_profiles SET name = ? WHERE id = ?',
@@ -498,7 +558,6 @@ app.put('/api/players/:id', authMiddleware, async (req, res) => {
       );
     }
 
-    // Update collection if provided
     if (updates.collection) {
       await connection.query('DELETE FROM player_cards WHERE player_id = ?', [id]);
 
@@ -517,7 +576,6 @@ app.put('/api/players/:id', authMiddleware, async (req, res) => {
       }
     }
 
-    // Update deck if provided
     if (updates.deck) {
       await connection.query('DELETE FROM player_deck WHERE player_id = ?', [id]);
 
@@ -535,9 +593,7 @@ app.put('/api/players/:id', authMiddleware, async (req, res) => {
       }
     }
 
-    // Add battle history if provided
     if (updates.battleHistory) {
-      // We assume this is adding a new battle, not replacing all history
       const battle = updates.battleHistory[updates.battleHistory.length - 1]; // Get the last one
       await connection.query(
         'INSERT INTO battle_history (player_id, dungeon_id, player_wins, dungeon_wins, player_victory, timestamp) VALUES (?, ?, ?, ?, ?, ?)',
@@ -563,7 +619,6 @@ app.put('/api/players/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// Delete player
 app.delete('/api/players/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
@@ -586,7 +641,6 @@ app.delete('/api/players/:id', authMiddleware, async (req, res) => {
 
 // ==================== IMAGE GENERATION ENDPOINTS ====================
 
-// Kép generálása endpoint
 app.post('/api/generate-image', authMiddleware, async (req, res) => {
   try {
     const { prompt, filename } = req.body;
@@ -595,16 +649,13 @@ app.post('/api/generate-image', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'A prompt mező kötelező!' });
     }
 
-    // Filename generálása, ha nincs megadva (szóköz megtartása)
     const imageFilename = filename || `${prompt.substring(0, 50)}.jpg`;
     const sanitizedFilename = imageFilename.endsWith('.jpg') ? imageFilename : `${imageFilename}.jpg`;
     const imagePath = join(imagesDir, sanitizedFilename);
 
-    // Ellenőrizzük, hogy a fájl már létezik-e
     if (existsSync(imagePath)) {
       console.log(`⚠️ A kép már létezik, használjuk a meglévőt: ${sanitizedFilename}`);
       
-      // URL-enkódolt path a válaszban
       const encodedPath = `/images/${encodeURIComponent(sanitizedFilename)}`;
       
       return res.json({
@@ -630,7 +681,6 @@ app.post('/api/generate-image', authMiddleware, async (req, res) => {
       throw new Error(`HTTP hiba! Státusz: ${response.status}`);
     }
 
-    // Kép mentése
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     
@@ -638,10 +688,8 @@ app.post('/api/generate-image', authMiddleware, async (req, res) => {
 
     console.log(`✅ Kép sikeresen mentve: ${sanitizedFilename}`);
 
-    // URL-enkódolt path a válaszban
     const encodedPath = `/images/${encodeURIComponent(sanitizedFilename)}`;
 
-    // Sikeres válasz
     res.json({
       success: true,
       message: 'Kép sikeresen generálva',
@@ -660,12 +708,10 @@ app.post('/api/generate-image', authMiddleware, async (req, res) => {
   }
 });
 
-// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'A szerver működik' });
 });
 
-// Lista az összes generált képről
 app.get('/api/images', authMiddleware, (req, res) => {
   try {
     const fs = require('fs');
