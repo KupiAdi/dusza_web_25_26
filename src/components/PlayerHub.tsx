@@ -34,8 +34,8 @@ function prepareInitialCollection(environment: GameEnvironment): PlayerProfile['
     .filter((card) => card.kind === 'standard')
     .map((card) => ({
       cardId: card.id,
-      damage: card.damage,
-      health: card.health,
+      damageBonus: 0,
+      healthBonus: 0,
     }))
 }
 
@@ -630,8 +630,8 @@ export function PlayerHub({
                       >
                         <CardPreview
                           card={worldCard}
-                          damage={card.damage}
-                          health={card.health}
+                          damage={worldCard.damage + card.damageBonus}
+                          health={worldCard.health + card.healthBonus}
                           accent={disabled ? 'deck' : 'collection'}
                         />
                       </div>
@@ -676,8 +676,8 @@ export function PlayerHub({
                       >
                         <CardPreview
                           card={worldCard}
-                          damage={playerCardState.damage}
-                          health={playerCardState.health}
+                          damage={worldCard.damage + playerCardState.damageBonus}
+                          health={worldCard.health + playerCardState.healthBonus}
                           accent="deck"
                           highlight
                           footer={

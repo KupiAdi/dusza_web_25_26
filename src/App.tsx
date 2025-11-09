@@ -232,7 +232,7 @@ function AppShell() {
                   </button>
                   <span className="env-meta">
                     {t('environment.meta.summary', {
-                      cards: environment.worldCards.length,
+                      cards: environment.worldCards.filter((c) => c.kind === 'standard').length,
                       dungeons: environment.dungeons.length,
                     })}
                   </span>
@@ -265,7 +265,7 @@ function AppShell() {
                   </button>
                   <span className="env-meta">
                     {t('environment.meta.summary', {
-                      cards: environment.worldCards.length,
+                      cards: environment.worldCards.filter((c) => c.kind === 'standard').length,
                       dungeons: environment.dungeons.length,
                     })}
                   </span>

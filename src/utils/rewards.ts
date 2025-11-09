@@ -23,13 +23,13 @@ export function applyReward(
       return card
     }
     if (type === 'encounter') {
-      return { ...card, damage: card.damage + 1 }
+      return { ...card, damageBonus: card.damageBonus + 1 }
     }
     if (type === 'minor') {
-      return { ...card, health: card.health + 2 }
+      return { ...card, healthBonus: card.healthBonus + 2 }
     }
     if (type === 'major') {
-      return { ...card, damage: card.damage + 3 }
+      return { ...card, damageBonus: card.damageBonus + 3 }
     }
     return card
   })

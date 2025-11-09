@@ -32,8 +32,8 @@ export interface GameEnvironment {
 
 export interface PlayerCardState {
   cardId: string
-  damage: number
-  health: number
+  damageBonus: number
+  healthBonus: number
 }
 
 export interface DeckEntry {

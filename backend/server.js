@@ -364,7 +364,7 @@ app.get('/api/players', authMiddleware, async (req, res) => {
       players.map(async (player) => {
         // Get collection
         const [collection] = await db.query(
-          'SELECT card_id as cardId, damage, health FROM player_cards WHERE player_id = ?',
+          'SELECT card_id as cardId, damage_bonus as damageBonus, health_bonus as healthBonus FROM player_cards WHERE player_id = ?',
           [player.id]
         );
 
@@ -435,12 +435,12 @@ app.post('/api/players', authMiddleware, async (req, res) => {
       const collectionValues = collection.map(card => [
         id,
         card.cardId,
-        card.damage,
-        card.health
+        card.damageBonus,
+        card.healthBonus
       ]);
 
       await connection.query(
-        'INSERT INTO player_cards (player_id, card_id, damage, health) VALUES ?',
+        'INSERT INTO player_cards (player_id, card_id, damage_bonus, health_bonus) VALUES ?',
         [collectionValues]
       );
     }
@@ -506,12 +506,12 @@ app.put('/api/players/:id', authMiddleware, async (req, res) => {
         const collectionValues = updates.collection.map(card => [
           id,
           card.cardId,
-          card.damage,
-          card.health
+          card.damageBonus,
+          card.healthBonus
         ]);
 
         await connection.query(
-          'INSERT INTO player_cards (player_id, card_id, damage, health) VALUES ?',
+          'INSERT INTO player_cards (player_id, card_id, damage_bonus, health_bonus) VALUES ?',
           [collectionValues]
         );
       }

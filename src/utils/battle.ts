@@ -46,8 +46,8 @@ function preparePlayerCard(
   return {
     id: base.id,
     name: base.name,
-    damage: playerCard.damage,
-    health: playerCard.health,
+    damage: base.damage + playerCard.damageBonus,
+    health: base.health + playerCard.healthBonus,
     element: base.element,
     kind: base.kind,
   }

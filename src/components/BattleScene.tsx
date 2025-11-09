@@ -104,8 +104,8 @@ export function BattleScene({ result, environment, playerCards, onComplete, onRe
 
   // Get the actual player card stats from their collection
   const playerCardState = playerCards.find((c) => c.cardId === currentRound.playerCardId)
-  const playerDamage = playerCardState?.damage ?? playerCard.damage
-  const playerHealth = playerCardState?.health ?? playerCard.health
+  const playerDamage = playerCardState ? playerCard.damage + playerCardState.damageBonus : playerCard.damage
+  const playerHealth = playerCardState ? playerCard.health + playerCardState.healthBonus : playerCard.health
 
   const dungeon = environment.dungeons.find((d) => d.id === result.dungeonId)
   const rewardDescriptorKey = dungeon ? getRewardDescriptorKey(dungeon.type) : ''
@@ -283,8 +283,8 @@ export function BattleScene({ result, environment, playerCards, onComplete, onRe
                   >
                     <CardPreview
                       card={worldCard}
-                      damage={cardState.damage}
-                      health={cardState.health}
+                      damage={worldCard.damage + cardState.damageBonus}
+                      health={worldCard.health + cardState.healthBonus}
                       accent="reward"
                       highlight
                     />
