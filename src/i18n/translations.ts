@@ -219,7 +219,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       },
       dungeons: {
         title: 'Kiválasztott kazamaták',
-        cardRequirement: '({count} kártya)',
+        cardRequirement: '({{count}} kártya)',
         startBattle: 'Harc indítása',
       },
       history: {
@@ -513,7 +513,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       },
       dungeons: {
         title: 'Selected dungeons',
-        cardRequirement: '({count} card(s))',
+        cardRequirement: '({{count}} card(s))',
         startBattle: 'Start battle',
       },
       history: {
@@ -807,7 +807,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       },
       dungeons: {
         title: 'Ausgewählte Dungeons',
-        cardRequirement: '({count} Karte(n))',
+        cardRequirement: '({{count}} Karte(n))',
         startBattle: 'Kampf starten',
       },
       history: {

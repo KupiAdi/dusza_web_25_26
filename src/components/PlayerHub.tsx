@@ -66,14 +66,20 @@ export function PlayerHub({
   const selectedPlayer = players.find((player) => player.id === selectedPlayerId) ?? null
   const playerEnvironment = environments.find((env) => env.id === selectedPlayer?.environmentId) ?? null
 
-  // Detect mobile view
+  // Detect mobile/touch view
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobileView(window.innerWidth <= 768)
+    const checkMobileOrTouch = () => {
+      // Check if device has touch capability OR is narrow screen
+      const hasTouchScreen = 
+        'ontouchstart' in window ||
+        navigator.maxTouchPoints > 0 ||
+        (navigator as any).msMaxTouchPoints > 0
+      const isNarrowScreen = window.innerWidth <= 768
+      setIsMobileView(hasTouchScreen || isNarrowScreen)
     }
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
+    checkMobileOrTouch()
+    window.addEventListener('resize', checkMobileOrTouch)
+    return () => window.removeEventListener('resize', checkMobileOrTouch)
   }, [])
 
   // Clear selected player if switching to different environment
