@@ -299,7 +299,7 @@
 .tabs button {
   padding: 0.75rem 1.5rem;
   background: transparent;
-  color: inherit;
+  color: #f8fafc;
   border: none;
   cursor: pointer;
   font-weight: 600;
@@ -311,11 +311,12 @@
 .tabs button:hover,
 .tabs button:focus-visible {
   background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
 }
 
 .tabs button.active {
   background: #f8fafc;
-  color: #172554;
+  color: #172554 !important;
 }
 
 .feedback {
