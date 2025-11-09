@@ -558,11 +558,7 @@ npm run dev
 
 #### 6. Admin Felhasználó
 
-**Az admin fiók már létezik az adatbázisban:**
-- **Felhasználónév:** `admin`
-- **Jelszó:** `admin123`
-
-**Megjegyzés:** Ez az egyetlen admin jogosultságú fiók. Új felhasználók regisztrációja csak normál jogosultságú fiókokat hoz létre, amelyek nem férhetnek hozzá a Játékmester módhoz.
+**Az admin fiókot létre kell hozni a regisztráció oldalon**
 
 ---
 
