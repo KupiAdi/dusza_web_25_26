@@ -336,6 +336,141 @@
   color: var(--color-text);
 }
 
+/* Enhanced Dropdown/Select Styles */
+select {
+  appearance: none;
+  padding-right: 2.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+/* Light theme dropdown arrow */
+:root[data-theme='light'] select,
+:root:not([data-theme='dark']) select {
+  background: var(--color-bg-secondary) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%230f172a' d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat right 0.75rem center;
+  background-size: 12px;
+}
+
+/* Dark theme dropdown arrow */
+:root[data-theme='dark'] select {
+  background: var(--color-bg-secondary) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23f1f5f9' d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat right 0.75rem center;
+  background-size: 12px;
+}
+
+/* Light theme hover/focus */
+:root[data-theme='light'] select:hover,
+:root:not([data-theme='dark']) select:hover {
+  border-color: var(--color-primary);
+  background: rgba(37, 99, 235, 0.08) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%230f172a' d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat right 0.75rem center;
+  background-size: 12px;
+}
+
+:root[data-theme='light'] select:focus,
+:root:not([data-theme='dark']) select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  background: rgba(37, 99, 235, 0.05) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%230f172a' d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat right 0.75rem center;
+  background-size: 12px;
+}
+
+/* Dark theme hover/focus */
+:root[data-theme='dark'] select:hover {
+  border-color: var(--color-primary);
+  background: rgba(37, 99, 235, 0.08) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23f1f5f9' d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat right 0.75rem center;
+  background-size: 12px;
+}
+
+:root[data-theme='dark'] select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  background: rgba(37, 99, 235, 0.05) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23f1f5f9' d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat right 0.75rem center;
+  background-size: 12px;
+}
+
+select option {
+  background: var(--color-bg-elevated);
+  color: var(--color-text);
+  padding: 0.5rem;
+  font-weight: 500;
+}
+
+/* Dropdown wrapper for better control */
+.dropdown-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dropdown-wrapper label {
+  font-weight: 500;
+  color: var(--color-text);
+  opacity: 0.9;
+  font-size: 0.875rem;
+}
+
+/* Small dropdown variant */
+.dropdown-small select {
+  padding: 0.4rem 2rem 0.4rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  min-width: 120px;
+}
+
+/* Medium dropdown variant */
+.dropdown-medium select {
+  padding: 0.5rem 2.5rem 0.5rem 1rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  min-width: 150px;
+}
+
+/* Header dropdown styling - for dropdowns in the header */
+.header-dropdown {
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+  /* Override theme-specific arrow with white arrow for header */
+  background: rgba(255, 255, 255, 0.15) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat right 0.75rem center !important;
+  background-size: 12px !important;
+}
+
+.dropdown-small .header-dropdown {
+  background-position: right 0.5rem center !important;
+  background-size: 10px !important;
+}
+
+.header-dropdown:hover {
+  background: rgba(255, 255, 255, 0.25) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat right 0.75rem center !important;
+  background-size: 12px !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.dropdown-small .header-dropdown:hover {
+  background-position: right 0.5rem center !important;
+  background-size: 10px !important;
+}
+
+.header-dropdown:focus {
+  background: rgba(255, 255, 255, 0.25) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat right 0.75rem center !important;
+  background-size: 12px !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15) !important;
+}
+
+.dropdown-small .header-dropdown:focus {
+  background-position: right 0.5rem center !important;
+  background-size: 10px !important;
+}
+
+.header-dropdown option {
+  background: var(--color-bg-elevated);
+  color: var(--color-text);
+}
+
 .form-grid button,
 .tabs button,
 .environment-list button,

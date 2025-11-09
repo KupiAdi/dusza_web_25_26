@@ -10,30 +10,17 @@ interface LanguageSelectorProps {
 export function LanguageSelector({ className, showLabel = false, size = 'medium' }: LanguageSelectorProps) {
   const { language, setLanguage, availableLanguages, t } = useTranslation()
 
+  const wrapperClass = `dropdown-wrapper ${size === 'small' ? 'dropdown-small' : 'dropdown-medium'} ${className || ''}`
+
   return (
-    <label
-      className={className}
-      style={{
-        display: 'inline-flex',
-        flexDirection: showLabel ? 'column' : 'row',
-        alignItems: showLabel ? 'flex-start' : 'center',
-        gap: '0.25rem',
-        fontSize: size === 'small' ? '0.85rem' : '1rem',
-      }}
-    >
-      {showLabel && <span>{t('language.label')}</span>}
+    <div className={wrapperClass}>
+      {showLabel && <label htmlFor="language-selector">{t('language.label')}</label>}
       <select
+        id="language-selector"
         value={language}
         onChange={(event) => setLanguage(event.target.value as Language)}
         aria-label={showLabel ? undefined : t('language.label')}
-        style={{
-          padding: size === 'small' ? '0.25rem 0.5rem' : '0.4rem 0.75rem',
-          borderRadius: '0.5rem',
-          border: '1px solid rgba(255, 255, 255, 0.4)',
-          background: 'rgba(0, 0, 0, 0.2)',
-          color: 'inherit',
-          cursor: 'pointer',
-        }}
+        className="header-dropdown"
       >
         {availableLanguages.map((option) => (
           <option key={option.code} value={option.code}>
@@ -41,7 +28,7 @@ export function LanguageSelector({ className, showLabel = false, size = 'medium'
           </option>
         ))}
       </select>
-    </label>
+    </div>
   )
 }
 
