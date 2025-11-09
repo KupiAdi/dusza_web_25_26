@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import type { BattleResult, GameEnvironment, PlayerCardState } from '../types'
 import { CardPreview } from './CardPreview'
 import { getRewardDescriptorKey } from '../utils/rewards'
@@ -20,10 +20,54 @@ export function BattleScene({ result, environment, playerCards, onComplete, onRe
   const [phase, setPhase] = useState<AnimationPhase>('intro')
   const [playerScore, setPlayerScore] = useState(0)
   const [dungeonScore, setDungeonScore] = useState(0)
+  const [isMuted, setIsMuted] = useState(false)
   const { t } = useTranslation()
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   const currentRound = result.rounds[currentRoundIndex]
   const isLastRound = currentRoundIndex === result.rounds.length - 1
+
+  // Battle music management
+  useEffect(() => {
+    // Epic battle music - using a working free music URL
+    // This is "Epic Cinematic" from Pixabay - royalty free
+    const battleMusicUrl = '/audio/battle.mp3'
+    
+    if (!audioRef.current) {
+      audioRef.current = new Audio(battleMusicUrl)
+      audioRef.current.loop = true
+      audioRef.current.volume = 0.1 // 40% volume so it doesn't overpower
+    }
+
+    // Start playing when component mounts
+    const playPromise = audioRef.current.play()
+    
+    if (playPromise !== undefined) {
+      playPromise.catch((error) => {
+        // Auto-play was prevented, that's ok
+        console.log('Audio autoplay prevented:', error)
+      })
+    }
+
+    // Cleanup: stop music when component unmounts
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current.currentTime = 0
+      }
+    }
+  }, [])
+
+  // Handle mute/unmute
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = isMuted ? 0 : 0.1
+    }
+  }, [isMuted])
+
+  const toggleMute = () => {
+    setIsMuted((prev) => !prev)
+  }
 
   useEffect(() => {
     let timer: number
@@ -163,6 +207,17 @@ export function BattleScene({ result, environment, playerCards, onComplete, onRe
           {t('battle.skipCta')}
         </button>
       )}
+      
+      {/* Mute button */}
+      <button 
+        type="button" 
+        className="battle-mute-button"
+        onClick={toggleMute}
+        aria-label={isMuted ? 'Unmute' : 'Mute'}
+        title={isMuted ? 'Hang be' : 'Némítás'}
+      >
+        {isMuted ? '🔇' : '🔊'}
+      </button>
       
       <div className="battle-scene__content">
         {/* Final Result Screen */}
