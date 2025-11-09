@@ -213,22 +213,79 @@
 .app-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   gap: 2rem;
-  padding: 2rem 3rem 1.5rem;
+  padding: 1.5rem 3rem;
   background: linear-gradient(135deg, #172554, #2563eb);
   color: #f8fafc;
   flex-wrap: wrap;
 }
 
-.app-header h1 {
-  margin: 0;
-  font-size: 2.5rem;
+.app-header__brand {
+  flex: 1 1 auto;
+  min-width: 200px;
 }
 
-.app-header p {
+.app-header__brand h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  line-height: 1.2;
+}
+
+.app-header__brand p {
   margin: 0.25rem 0 0;
   max-width: 32rem;
+  opacity: 0.9;
+}
+
+.app-header__controls {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.app-header__selectors {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.app-header__user {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.app-header__greeting {
+  opacity: 0.9;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.app-header__logout {
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 0.5rem;
+  color: inherit;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.app-header__logout:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-1px);
+}
+
+.app-nav {
+  padding: 1rem 3rem;
+  background: linear-gradient(135deg, #172554, #2563eb);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .tabs {
@@ -236,6 +293,7 @@
   border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 999px;
   overflow: hidden;
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .tabs button {
@@ -246,7 +304,8 @@
   cursor: pointer;
   font-weight: 600;
   letter-spacing: 0.02em;
-  transition: background 160ms ease;
+  transition: all 160ms ease;
+  white-space: nowrap;
 }
 
 .tabs button:hover,
@@ -1375,18 +1434,36 @@ select option {
   }
 
   .app-header {
-    padding: 1.5rem 1rem 1rem;
-    flex-direction: column;
-    align-items: flex-start;
+    padding: 1.25rem 1.5rem;
+    gap: 1.25rem;
+  }
+
+  .app-header__brand h1 {
+    font-size: 2rem;
+  }
+
+  .app-header__brand p {
+    font-size: 0.9rem;
+  }
+
+  .app-header__controls {
+    width: 100%;
+    justify-content: space-between;
     gap: 1rem;
   }
 
-  .app-header h1 {
-    font-size: 1.75rem;
+  .app-nav {
+    padding: 0.75rem 1.5rem;
   }
 
-  .app-header p {
-    font-size: 0.9rem;
+  .tabs {
+    width: 100%;
+    display: flex;
+  }
+
+  .tabs button {
+    flex: 1;
+    padding: 0.65rem 1rem;
   }
 
   .panel {
@@ -1420,6 +1497,22 @@ select option {
 }
 
 @media (max-width: 768px) {
+  .app-header {
+    padding: 1rem 1.25rem;
+  }
+
+  .app-header__brand h1 {
+    font-size: 1.75rem;
+  }
+
+  .app-header__controls {
+    gap: 1rem;
+  }
+
+  .app-nav {
+    padding: 0.75rem 1.25rem;
+  }
+
   .mobile-clickable::after {
     content: '👆';
     position: absolute;
@@ -1452,10 +1545,53 @@ select option {
 @media (max-width: 640px) {
   .app-header {
     padding: 1rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
   }
 
-  .app-header h1 {
+  .app-header__brand h1 {
     font-size: 1.5rem;
+  }
+
+  .app-header__brand p {
+    font-size: 0.85rem;
+  }
+
+  .app-header__controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .app-header__selectors {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .app-header__user {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .app-header__greeting {
+    text-align: center;
+    font-size: 0.9rem;
+  }
+
+  .app-header__logout {
+    width: 100%;
+    text-align: center;
+  }
+
+  .app-nav {
+    padding: 0.75rem 1rem;
+  }
+
+  .tabs button {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
   }
 
   .app-main {
@@ -1499,17 +1635,6 @@ select option {
 
   .modal-dialog {
     padding: 1.25rem;
-  }
-
-  .tabs {
-    width: 100%;
-    display: flex;
-  }
-
-  .tabs button {
-    flex: 1;
-    padding: 0.6rem 1rem;
-    font-size: 0.9rem;
   }
 
   .auth-card {
@@ -1577,8 +1702,26 @@ select option {
 }
 
 @media (max-width: 480px) {
-  .app-header h1 {
+  .app-header__brand h1 {
     font-size: 1.25rem;
+  }
+
+  .app-header__brand p {
+    font-size: 0.8rem;
+  }
+
+  .app-header__greeting {
+    font-size: 0.85rem;
+  }
+
+  .app-header__logout {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .tabs button {
+    padding: 0.55rem 0.75rem;
+    font-size: 0.85rem;
   }
 
   .panel h2 {

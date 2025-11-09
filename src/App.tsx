@@ -155,48 +155,46 @@ function AppShell() {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <div>
+        <div className="app-header__brand">
           <h1>{t('app.title')}</h1>
           <p>{t('app.subtitle')}</p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <ThemeSelector size="small" />
-          <LanguageSelector size="small" />
-          <span style={{ opacity: 0.9 }}>{greetingText}</span>
-          <button
-            type="button"
-            onClick={logout}
-            style={{
-              padding: '0.5rem 1rem',
-              background: 'rgba(255, 255, 255, 0.2)',
-              border: '1px solid rgba(255, 255, 255, 0.4)',
-              borderRadius: '0.5rem',
-              color: 'inherit',
-              cursor: 'pointer',
-              fontWeight: 600,
-            }}
-          >
-            {t('common.logout')}
-          </button>
+        <div className="app-header__controls">
+          <div className="app-header__selectors">
+            <ThemeSelector size="small" />
+            <LanguageSelector size="small" />
+          </div>
+          <div className="app-header__user">
+            <span className="app-header__greeting">{greetingText}</span>
+            <button
+              type="button"
+              onClick={logout}
+              className="app-header__logout"
+            >
+              {t('common.logout')}
+            </button>
+          </div>
         </div>
       </header>
 
       {isAdmin && (
-        <nav className="tabs" style={{ margin: '1rem 3rem', width: 'fit-content' }}>
-          <button
-            type="button"
-            className={activeTab === 'player' ? 'active' : ''}
-            onClick={() => setActiveTab('player')}
-          >
-            {t('app.tabs.player')}
-          </button>
-          <button
-            type="button"
-            className={activeTab === 'master' ? 'active' : ''}
-            onClick={() => setActiveTab('master')}
-          >
-            {t('app.tabs.master')}
-          </button>
+        <nav className="app-nav">
+          <div className="tabs">
+            <button
+              type="button"
+              className={activeTab === 'player' ? 'active' : ''}
+              onClick={() => setActiveTab('player')}
+            >
+              {t('app.tabs.player')}
+            </button>
+            <button
+              type="button"
+              className={activeTab === 'master' ? 'active' : ''}
+              onClick={() => setActiveTab('master')}
+            >
+              {t('app.tabs.master')}
+            </button>
+          </div>
         </nav>
       )}
 
