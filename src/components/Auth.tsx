@@ -32,8 +32,16 @@ export function Auth() {
       newErrors.username = t('validation.required')
     }
 
-    if (mode === 'register' && !email.trim()) {
-      newErrors.email = t('validation.required')
+    if (mode === 'register') {
+      if (!email.trim()) {
+        newErrors.email = t('validation.required')
+      } else {
+        // Simple email format validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(email.trim())) {
+          newErrors.email = t('validation.emailRequired')
+        }
+      }
     }
 
     if (!password) {
