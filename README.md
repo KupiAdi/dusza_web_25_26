@@ -467,7 +467,7 @@ sudo systemctl start mysql
 #### 2. Projekt Klónozása
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/KupiAdi/dusza_web_25_26
 cd dusza_web_25_26
 ```
 
