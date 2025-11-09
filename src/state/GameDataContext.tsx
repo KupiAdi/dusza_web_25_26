@@ -5,8 +5,8 @@ import type {
   GameEnvironment,
   PlayerProfile,
   PlayerCardState,
-  BattleResult,
   DeckEntry,
+  BattleHistoryEntry,
 } from '../types'
 
 interface GameState {
@@ -32,7 +32,7 @@ type GameAction =
         id: string
         collection?: PlayerCardState[]
         deck?: DeckEntry[]
-        battleHistory?: BattleResult[]
+        battleHistory?: BattleHistoryEntry[]
         name?: string
       }
     }
