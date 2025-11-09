@@ -39,7 +39,7 @@
 
 #### Első Lépések
 
-1. **Nyissa meg az alkalmazást** a böngészőben: `http://localhost:5173`
+1. **Nyissa meg az alkalmazást** a böngészőben: `http://4.182.233.175/`
 2. **Regisztráljon** egy új fiókot vagy **jelentkezzen be** meglévő fiókkal
 3. **Válasszon módot:**
    - **Játékmester mód**: Környezetek, kártyák és kazamaták létrehozása
