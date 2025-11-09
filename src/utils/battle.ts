@@ -213,7 +213,8 @@ export function runBattle({ environment, deck, dungeon, playerCards }: RunBattle
     }
   })
 
-  const playerVictory = playerWins >= dungeon.cardOrder.length
+  // Player wins if they won more rounds than the dungeon
+  const playerVictory = playerWins >= dungeonWins
 
   return {
     dungeonId: dungeon.id,
