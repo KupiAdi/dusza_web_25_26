@@ -62,9 +62,17 @@ export function PlayerHub({
   const saveTimeoutRef = useRef<number | null>(null)
   const isLoadingDeckRef = useRef(false)
   const [isMobileView, setIsMobileView] = useState(false)
+  const [isSessionsCollapsed, setIsSessionsCollapsed] = useState(() => {
+    const stored = localStorage.getItem('sessionsCollapsed')
+    return stored === 'true'
+  })
 
   const selectedPlayer = players.find((player) => player.id === selectedPlayerId) ?? null
   const playerEnvironment = environments.find((env) => env.id === selectedPlayer?.environmentId) ?? null
+
+  useEffect(() => {
+    localStorage.setItem('sessionsCollapsed', String(isSessionsCollapsed))
+  }, [isSessionsCollapsed])
 
   useEffect(() => {
     const checkMobileOrTouch = () => {
@@ -461,6 +469,13 @@ export function PlayerHub({
       (player) => player.name.toLowerCase() === trimmedNewGameName.toLowerCase()
     )
 
+  // Auto-select first player if none is selected
+  useEffect(() => {
+    if (!selectedPlayerId && playersInSelectedEnvironment.length > 0) {
+      setSelectedPlayerId(playersInSelectedEnvironment[0].id)
+    }
+  }, [selectedPlayerId, playersInSelectedEnvironment])
+
   const isDeckSurfaceTarget = dropIndex === deckDraft.length
 
   return (
@@ -480,114 +495,108 @@ export function PlayerHub({
         {message && <div className={`feedback feedback--${message.type}`}>{message.text}</div>}
 
       <div className="panel-block">
-        <h3>{t('player.sessions.title')}</h3>
-        {playersInSelectedEnvironment.length > 0 && (
-          <div>
-            <h4>{t('player.sessions.listTitle')}</h4>
-            <ul style={{ listStyle: 'none', padding: 0 }}>
-              {playersInSelectedEnvironment.map((player) => {
-                const env = environments.find((e) => e.id === player.environmentId)
-                return (
-                  <li key={player.id} style={{ marginBottom: '8px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedPlayerId(player.id)}
-                      style={{
-                        padding: '8px 12px',
-                        background: selectedPlayerId === player.id ? '#4a5568' : '#2d3748',
-                        border: 'none',
-                        borderRadius: '4px',
-                        color: 'white',
-                        cursor: 'pointer',
-                        flex: '1 1 200px',
-                        textAlign: 'left',
-                        minWidth: '0',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      <strong>{env?.name || t('common.unknownGame')}</strong> - {player.name}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => requestPlayerRemoval(player.id, player.name)}
-                      disabled={isRemovingPlayer}
-                      style={{
-                        padding: '8px 12px',
-                        background: '#dc2626',
-                        border: 'none',
-                        borderRadius: '4px',
-                        color: 'white',
-                        cursor: isRemovingPlayer ? 'not-allowed' : 'pointer',
-                        opacity: isRemovingPlayer ? 0.7 : 1,
-                        minWidth: '80px',
-                        flex: '0 0 auto',
-                      }}
-                      title={t('player.sessions.deleteTitle')}
-                    >
-                      {t('common.delete')}
-                    </button>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        )}
-
-        <div className="start-session">
-          <h4>{t('player.sessions.startTitle')}</h4>
-          <p className="start-session__meta">
-            {t('player.sessions.gameLabel')}{' '}
-            <strong>
-              {environments.find((environment) => environment.id === defaultEnvironmentId)?.name ||
-                t('player.sessions.gamePlaceholder')}
-            </strong>
-          </p>
-          <form
-            className="form-grid start-session__form"
-            onSubmit={(event) => {
-              event.preventDefault()
-              handleCreatePlayer()
-            }}
+        <div className="collapsible-section-header">
+          <h3>{t('player.sessions.title')}</h3>
+          <button
+            type="button"
+            className="collapse-toggle"
+            onClick={() => setIsSessionsCollapsed(!isSessionsCollapsed)}
+            aria-label={isSessionsCollapsed ? 'Expand sessions' : 'Collapse sessions'}
+            title={isSessionsCollapsed ? 'Expand sessions' : 'Collapse sessions'}
           >
-            <label htmlFor="new-session-name">
-              {t('player.sessions.nameLabel')}
-              <input
-                id="new-session-name"
-                type="text"
-                value={newGameName}
-                onChange={(event) => setNewGameName(event.target.value)}
-                placeholder={t('player.sessions.namePlaceholder')}
-                maxLength={32}
-                aria-invalid={isDuplicateGameName ? 'true' : 'false'}
-                aria-describedby="new-session-name-hint"
-              />
-              <span
-                id="new-session-name-hint"
-                className={`field-hint ${isDuplicateGameName ? 'field-hint--error' : ''}`}
-              >
-                {isDuplicateGameName
-                  ? t('player.sessions.nameHintDuplicate')
-                  : t('player.sessions.nameHint')}
-              </span>
-            </label>
-            <div className="start-session__actions">
-              <button
-                type="submit"
-                className="primary-button"
-                disabled={
-                  !defaultPlayerName ||
-                  !defaultEnvironmentId ||
-                  !trimmedNewGameName ||
-                  isDuplicateGameName
-                }
-              >
-                {t('player.sessions.startButton')}
-              </button>
-            </div>
-          </form>
+            {isSessionsCollapsed ? '▼' : '▲'}
+          </button>
         </div>
+        
+        {!isSessionsCollapsed && (
+          <>
+            {playersInSelectedEnvironment.length > 0 && (
+              <div>
+                <h4>{t('player.sessions.listTitle')}</h4>
+                <ul className="session-list">
+                  {playersInSelectedEnvironment.map((player) => {
+                    const env = environments.find((e) => e.id === player.environmentId)
+                    const isSelected = selectedPlayerId === player.id
+                    return (
+                      <li key={player.id} className="session-list-item">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedPlayerId(player.id)}
+                          className={`session-button ${isSelected ? 'session-button--selected' : ''}`}
+                        >
+                          <strong>{env?.name || t('common.unknownGame')}</strong> - {player.name}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => requestPlayerRemoval(player.id, player.name)}
+                          disabled={isRemovingPlayer}
+                          className="session-delete-button"
+                          title={t('player.sessions.deleteTitle')}
+                        >
+                          {t('common.delete')}
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            )}
+
+            <div className="start-session">
+              <h4>{t('player.sessions.startTitle')}</h4>
+              <p className="start-session__meta">
+                {t('player.sessions.gameLabel')}{' '}
+                <strong>
+                  {environments.find((environment) => environment.id === defaultEnvironmentId)?.name ||
+                    t('player.sessions.gamePlaceholder')}
+                </strong>
+              </p>
+              <form
+                className="form-grid start-session__form"
+                onSubmit={(event) => {
+                  event.preventDefault()
+                  handleCreatePlayer()
+                }}
+              >
+                <label htmlFor="new-session-name">
+                  {t('player.sessions.nameLabel')}
+                  <input
+                    id="new-session-name"
+                    type="text"
+                    value={newGameName}
+                    onChange={(event) => setNewGameName(event.target.value)}
+                    placeholder={t('player.sessions.namePlaceholder')}
+                    maxLength={32}
+                    aria-invalid={isDuplicateGameName ? 'true' : 'false'}
+                    aria-describedby="new-session-name-hint"
+                  />
+                  <span
+                    id="new-session-name-hint"
+                    className={`field-hint ${isDuplicateGameName ? 'field-hint--error' : ''}`}
+                  >
+                    {isDuplicateGameName
+                      ? t('player.sessions.nameHintDuplicate')
+                      : t('player.sessions.nameHint')}
+                  </span>
+                </label>
+                <div className="start-session__actions">
+                  <button
+                    type="submit"
+                    className="primary-button"
+                    disabled={
+                      !defaultPlayerName ||
+                      !defaultEnvironmentId ||
+                      !trimmedNewGameName ||
+                      isDuplicateGameName
+                    }
+                  >
+                    {t('player.sessions.startButton')}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </>
+        )}
       </div>
 
       {selectedPlayer && playerEnvironment && (
