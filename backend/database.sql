@@ -112,7 +112,6 @@ CREATE TABLE IF NOT EXISTS battle_history (
     player_wins INT NOT NULL,
     dungeon_wins INT NOT NULL,
     player_victory BOOLEAN NOT NULL,
-    battle_data JSON NOT NULL,
     timestamp BIGINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (player_id) REFERENCES player_profiles(id) ON DELETE CASCADE,

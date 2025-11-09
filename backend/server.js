@@ -376,7 +376,7 @@ app.get('/api/players', authMiddleware, async (req, res) => {
 
         // Get battle history
         const [battles] = await db.query(
-          'SELECT dungeon_id as dungeonId, player_wins as playerWins, dungeon_wins as dungeonWins, player_victory as playerVictory, battle_data as battleData, timestamp FROM battle_history WHERE player_id = ? ORDER BY timestamp DESC',
+          'SELECT dungeon_id as dungeonId, player_wins as playerWins, dungeon_wins as dungeonWins, player_victory as playerVictory, timestamp FROM battle_history WHERE player_id = ? ORDER BY timestamp DESC',
           [player.id]
         );
 
@@ -385,7 +385,6 @@ app.get('/api/players', authMiddleware, async (req, res) => {
           playerWins: battle.playerWins,
           dungeonWins: battle.dungeonWins,
           playerVictory: Boolean(battle.playerVictory),
-          rounds: typeof battle.battleData === 'string' ? JSON.parse(battle.battleData) : battle.battleData,
           timestamp: battle.timestamp
         }));
 
@@ -541,14 +540,13 @@ app.put('/api/players/:id', authMiddleware, async (req, res) => {
       // We assume this is adding a new battle, not replacing all history
       const battle = updates.battleHistory[updates.battleHistory.length - 1]; // Get the last one
       await connection.query(
-        'INSERT INTO battle_history (player_id, dungeon_id, player_wins, dungeon_wins, player_victory, battle_data, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO battle_history (player_id, dungeon_id, player_wins, dungeon_wins, player_victory, timestamp) VALUES (?, ?, ?, ?, ?, ?)',
         [
           id,
           battle.dungeonId,
           battle.playerWins,
           battle.dungeonWins,
           battle.playerVictory,
-          JSON.stringify(battle.rounds),
           battle.timestamp
         ]
       );

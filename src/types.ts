@@ -59,11 +59,19 @@ export interface BattleResult {
   timestamp: number
 }
 
+export interface BattleHistoryEntry {
+  dungeonId: string
+  playerWins: number
+  dungeonWins: number
+  playerVictory: boolean
+  timestamp: number
+}
+
 export interface PlayerProfile {
   id: string
   name: string
   environmentId: string
   collection: PlayerCardState[]
   deck: DeckEntry[]
-  battleHistory: BattleResult[]
+  battleHistory: BattleHistoryEntry[]
 }

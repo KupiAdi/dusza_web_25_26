@@ -344,8 +344,10 @@ export function PlayerHub({
     setLatestBattle(battle)
     setShowBattleScene(true)
     
+    // Extract only the needed fields for history (without rounds)
+    const { rounds, ...historyEntry } = battle
     onUpdatePlayer(selectedPlayer.id, {
-      battleHistory: [...selectedPlayer.battleHistory, battle],
+      battleHistory: [...selectedPlayer.battleHistory, historyEntry],
     })
   }
 
