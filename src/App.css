@@ -359,6 +359,11 @@
   padding: 2rem 3rem 3rem;
   background: var(--color-bg-secondary);
   flex: 1;
+  transition: grid-template-columns 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.app-main.sidebar-collapsed {
+  grid-template-columns: 3.5rem 1fr;
 }
 
 .environment-sidebar {
@@ -369,11 +374,97 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+              padding 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+              gap 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.3s ease;
+  overflow: hidden;
+  width: 100%;
+}
+
+.sidebar-collapsed .environment-sidebar {
+  padding: 0.5rem;
+  align-items: center;
+  width: 3.5rem;
+  min-width: 3.5rem;
+  height: fit-content;
+  gap: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.sidebar-collapsed .sidebar-header {
+  gap: 0;
+  justify-content: center;
+}
+
+.sidebar-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-toggle {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0;
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+  transition: background 0.2s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  min-width: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-toggle:hover {
+  background: var(--color-primary-dark);
+  transform: scale(1.1);
+}
+
+.sidebar-toggle:active {
+  transform: scale(0.9);
+  transition: transform 0.1s ease;
+}
+
+.sidebar-toggle-mobile {
+  display: none;
+}
+
+.sidebar-toggle-desktop {
+  display: inline;
+}
+
+.sidebar-title-collapsed {
+  display: none;
 }
 
 .environment-sidebar h2 {
   margin: 0;
   font-size: 1.25rem;
+  transition: opacity 0.3s ease-out;
+}
+
+.sidebar-collapsed .environment-sidebar h2 {
+  opacity: 0;
+  transition: opacity 0.15s ease-in;
 }
 
 .form-grid {
@@ -1410,8 +1501,43 @@ select option {
     gap: 1rem;
   }
 
+  .app-main.sidebar-collapsed {
+    grid-template-columns: 1fr;
+  }
+
   .environment-sidebar {
     order: 1;
+  }
+
+  .sidebar-collapsed .environment-sidebar {
+    width: 100%;
+    height: auto;
+    padding: 0.75rem;
+  }
+
+  .sidebar-collapsed .sidebar-header {
+    justify-content: space-between;
+  }
+
+  .sidebar-toggle {
+    transform: rotate(0deg);
+  }
+
+  .sidebar-toggle-mobile {
+    display: inline;
+  }
+
+  .sidebar-toggle-desktop {
+    display: none;
+  }
+
+  .sidebar-title-collapsed {
+    display: block;
+    opacity: 1;
+  }
+
+  .sidebar-collapsed .environment-sidebar h2 {
+    opacity: 1;
   }
 
   .workspace {

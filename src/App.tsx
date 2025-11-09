@@ -32,6 +32,17 @@ function AppShell() {
   const isAdmin = user?.username === 'admin'
   const [activeTab, setActiveTab] = useState<TabKey>('player')
 
+  // Sidebar collapse state with localStorage persistence
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    const stored = localStorage.getItem('sidebarCollapsed')
+    return stored === 'true'
+  })
+
+  // Save sidebar state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('sidebarCollapsed', String(isSidebarCollapsed))
+  }, [isSidebarCollapsed])
+
   // Set default tab based on admin status
   useEffect(() => {
     if (isAdmin) {
@@ -204,74 +215,108 @@ function AppShell() {
         </div>
       )}
 
-      <main className="app-main">
+      <main className={`app-main ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         {isAdmin && (
           <aside className="environment-sidebar">
-            <h2>{t('environment.sidebarTitle')}</h2>
-            <form className="form-grid" onSubmit={handleCreateEnvironment}>
-              <label>
-                {t('environment.form.name')}
-                <input
-                  value={newEnvironmentName}
-                  onChange={(event) => setNewEnvironmentName(event.target.value)}
-                  maxLength={32}
-                />
-              </label>
-              <button type="submit">{t('environment.form.submit')}</button>
-            </form>
+            <div className="sidebar-header">
+              <h2 className={isSidebarCollapsed ? 'sidebar-title-collapsed' : ''}>
+                {t('environment.sidebarTitle')}
+              </h2>
+              <button
+                type="button"
+                className="sidebar-toggle"
+                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              >
+                <span className="sidebar-toggle-desktop">{isSidebarCollapsed ? '→' : '←'}</span>
+                <span className="sidebar-toggle-mobile">{isSidebarCollapsed ? '↓' : '↑'}</span>
+              </button>
+            </div>
+            {!isSidebarCollapsed && (
+              <>
+                <form className="form-grid" onSubmit={handleCreateEnvironment}>
+                  <label>
+                    {t('environment.form.name')}
+                    <input
+                      value={newEnvironmentName}
+                      onChange={(event) => setNewEnvironmentName(event.target.value)}
+                      maxLength={32}
+                    />
+                  </label>
+                  <button type="submit">{t('environment.form.submit')}</button>
+                </form>
 
-            <ul className="environment-list">
-              {environments.map((environment) => (
-                <li key={environment.id}>
-                  <button
-                    type="button"
-                    className={selectedEnvironmentId === environment.id ? 'active' : ''}
-                    onClick={() => setSelectedEnvironmentId(environment.id)}
-                  >
-                    {environment.name}
-                  </button>
-                  <span className="env-meta">
-                    {t('environment.meta.summary', {
-                      cards: environment.worldCards.filter((c) => c.kind === 'standard').length,
-                      dungeons: environment.dungeons.length,
-                    })}
-                  </span>
-                  <button
-                    type="button"
-                    className="link-button"
-                    onClick={() => handleEnvironmentRemovalRequest(environment)}
-                    disabled={isRemovingEnvironment}
-                  >
-                    {t('common.delete')}
-                  </button>
-                </li>
-              ))}
-            </ul>
+                <ul className="environment-list">
+                  {environments.map((environment) => (
+                    <li key={environment.id}>
+                      <button
+                        type="button"
+                        className={selectedEnvironmentId === environment.id ? 'active' : ''}
+                        onClick={() => setSelectedEnvironmentId(environment.id)}
+                      >
+                        {environment.name}
+                      </button>
+                      <span className="env-meta">
+                        {t('environment.meta.summary', {
+                          cards: environment.worldCards.filter((c) => c.kind === 'standard').length,
+                          dungeons: environment.dungeons.length,
+                        })}
+                      </span>
+                      <button
+                        type="button"
+                        className="link-button"
+                        onClick={() => handleEnvironmentRemovalRequest(environment)}
+                        disabled={isRemovingEnvironment}
+                      >
+                        {t('common.delete')}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
           </aside>
         )}
 
         {!isAdmin && (
           <aside className="environment-sidebar">
-            <h2>{t('environment.sidebarTitle')}</h2>
-            <ul className="environment-list">
-              {environments.map((environment) => (
-                <li key={environment.id}>
-                  <button
-                    type="button"
-                    className={selectedEnvironmentId === environment.id ? 'active' : ''}
-                    onClick={() => setSelectedEnvironmentId(environment.id)}
-                  >
-                    {environment.name}
-                  </button>
-                  <span className="env-meta">
-                    {t('environment.meta.summary', {
-                      cards: environment.worldCards.filter((c) => c.kind === 'standard').length,
-                      dungeons: environment.dungeons.length,
-                    })}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <div className="sidebar-header">
+              <h2 className={isSidebarCollapsed ? 'sidebar-title-collapsed' : ''}>
+                {t('environment.sidebarTitle')}
+              </h2>
+              <button
+                type="button"
+                className="sidebar-toggle"
+                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              >
+                <span className="sidebar-toggle-desktop">{isSidebarCollapsed ? '→' : '←'}</span>
+                <span className="sidebar-toggle-mobile">{isSidebarCollapsed ? '↓' : '↑'}</span>
+              </button>
+            </div>
+            {!isSidebarCollapsed && (
+              <ul className="environment-list">
+                {environments.map((environment) => (
+                  <li key={environment.id}>
+                    <button
+                      type="button"
+                      className={selectedEnvironmentId === environment.id ? 'active' : ''}
+                      onClick={() => setSelectedEnvironmentId(environment.id)}
+                    >
+                      {environment.name}
+                    </button>
+                    <span className="env-meta">
+                      {t('environment.meta.summary', {
+                        cards: environment.worldCards.filter((c) => c.kind === 'standard').length,
+                        dungeons: environment.dungeons.length,
+                      })}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </aside>
         )}
 
