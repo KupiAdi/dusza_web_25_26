@@ -50,7 +50,7 @@ export function PlayerHub({
   defaultEnvironmentId,
 }: PlayerHubProps) {
   const { t } = useTranslation()
-  const { isActive: tutorialActive, currentStep, nextStep } = useTutorial()
+  const { currentStep, isActive: tutorialActive, markStepComplete, nextStep } = useTutorial()
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
   const [newGameName, setNewGameName] = useState('')
   const [deckDraft, setDeckDraft] = useState<DeckEntry[]>([])
@@ -426,12 +426,7 @@ export function PlayerHub({
       setSelectedPlayerId(profile.id)
       showMessage(t('player.messages.sessionCreated'))
       
-      // Auto-advance tutorial to next step
-      if (tutorialActive && currentStep === 'session') {
-        setTimeout(() => {
-          nextStep()
-        }, 500)
-      }
+      // Remove auto-advance - let validation hook handle it
     } catch (error: any) {
       console.error('Error creating play session:', error)
       showMessage(error.message || t('player.messages.sessionCreateFailed'), 'error')
@@ -485,6 +480,31 @@ export function PlayerHub({
     }
   }, [selectedPlayerId, playersInSelectedEnvironment])
 
+  // Tutorial validation - session created
+  useEffect(() => {
+    if (tutorialActive && currentStep === 'session' && playersInSelectedEnvironment.length > 0) {
+      markStepComplete()
+    }
+  }, [tutorialActive, currentStep, playersInSelectedEnvironment, markStepComplete])
+
+  // Tutorial validation - Aragorn card in deck
+  useEffect(() => {
+    if (tutorialActive && currentStep === 'card' && selectedPlayer && deckDraft.length > 0) {
+      // Check if ANY card is in the deck (not just Aragorn specifically)
+      // This is more flexible and works regardless of the card IDs in the environment
+      if (deckDraft.length >= 1) {
+        markStepComplete()
+      }
+    }
+  }, [tutorialActive, currentStep, selectedPlayer, deckDraft, markStepComplete])
+
+  // Tutorial validation - battle started (mark complete when battle scene shows)
+  useEffect(() => {
+    if (tutorialActive && currentStep === 'battle' && showBattleScene) {
+      markStepComplete()
+    }
+  }, [tutorialActive, currentStep, showBattleScene, markStepComplete])
+
   const isDeckSurfaceTarget = dropIndex === deckDraft.length
 
   return (
@@ -504,8 +524,8 @@ export function PlayerHub({
         {message && <div className={`feedback feedback--${message.type}`}>{message.text}</div>}
 
       <div className="panel-block">
+        <h3>{t('player.sessions.title')}</h3>
         <div className="collapsible-section-header">
-          <h3>{t('player.sessions.title')}</h3>
           <button
             type="button"
             className="collapse-toggle"
@@ -551,7 +571,7 @@ export function PlayerHub({
               </div>
             )}
 
-            <div className="start-session">
+            <div className="start-session" data-tutorial-target="session-form">
               <h4>{t('player.sessions.startTitle')}</h4>
               <p className="start-session__meta">
                 {t('player.sessions.gameLabel')}{' '}
@@ -562,7 +582,6 @@ export function PlayerHub({
               </p>
               <form
                 className="form-grid start-session__form"
-                data-tutorial-target="session-form"
                 onSubmit={(event) => {
                   event.preventDefault()
                   handleCreatePlayer()
@@ -621,9 +640,9 @@ export function PlayerHub({
                 <h5>{t('player.deck.availableCards')}</h5>
                 <div
                   className="card-grid card-grid--compact"
-                  data-tutorial-target="deck-collection"
                   onDragOver={handleCollectionDragOver}
                   onDrop={handleCollectionDrop}
+                  data-tutorial-target="deck-collection"
                 >
                   {selectedPlayer.collection.map((card) => {
                     const worldCard = playerEnvironment.worldCards.find(
@@ -633,12 +652,11 @@ export function PlayerHub({
                       return null
                     }
                     const disabled = deckDraft.some((entry) => entry.cardId === card.cardId)
-                    const isAragorn = worldCard.id === 'aragorn'
+                    // Remove specific Aragorn targeting
                     return (
                       <div
                         key={card.cardId}
                         className={`draggable-card ${disabled ? 'is-disabled' : ''} ${isMobileView ? 'mobile-clickable' : ''}`}
-                        data-tutorial-target={isAragorn ? 'aragorn-card' : undefined}
                         draggable={!disabled && !isMobileView}
                         onDragStart={(event) =>
                           handleCollectionDragStart(event, card.cardId, disabled)
@@ -664,10 +682,10 @@ export function PlayerHub({
                   className={`card-stack ${dropIndex !== null ? 'is-dragging' : ''} ${
                     isDeckSurfaceTarget ? 'is-drop-target' : ''
                   }`}
-                  data-tutorial-target="deck-area"
                   onDragOver={handleDeckSurfaceDragOver}
                   onDrop={handleDeckSurfaceDrop}
                   onDragLeave={handleDeckSurfaceDragLeave}
+                  data-tutorial-target="deck-area"
                 >
                   {deckDraft.map((entry, index) => {
                     const worldCard = playerEnvironment.worldCards.find(
@@ -738,9 +756,9 @@ export function PlayerHub({
             <h4>{t('player.dungeons.title')}</h4>
             <ul className="dungeon-list">
               {playerEnvironment.dungeons.map((dungeon) => {
-                const isGuardianDungeon = dungeon.id === 'enc-guardian'
+                // Remove specific dungeon targeting
                 return (
-                  <li key={dungeon.id} data-tutorial-target={isGuardianDungeon ? 'guardian-dungeon' : undefined}>
+                  <li key={dungeon.id}>
                     <div>
                       <strong>{dungeon.name}</strong> - {t(`environment.dungeon.type.${dungeon.type}`)}{' '}
                       {t('player.dungeons.cardRequirement', { count: getDeckRequirement(dungeon) })}

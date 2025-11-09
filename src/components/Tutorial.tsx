@@ -4,7 +4,7 @@ import { useTranslation } from '../state/LanguageContext'
 import './Tutorial.css'
 
 export function Tutorial() {
-  const { isActive, currentStep, nextStep, skipTutorial } = useTutorial()
+  const { isActive, currentStep, isStepComplete, nextStep, skipTutorial } = useTutorial()
   const { t } = useTranslation()
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
   const [showTooltip, setShowTooltip] = useState(false)
@@ -52,12 +52,12 @@ export function Tutorial() {
         selector = '[data-tutorial-target="session-form"]'
         break
       case 'card':
-        // Target both the Aragorn card and the deck area
-        const aragornCard = document.querySelector('[data-tutorial-target="aragorn-card"]')
+        // Target both the first available card and the deck area
+        const firstCard = document.querySelector('[data-tutorial-target="deck-collection"] .draggable-card:not(.is-disabled)')
         const deckArea = document.querySelector('[data-tutorial-target="deck-area"]')
         
-        if (aragornCard && deckArea) {
-          const cardRect = aragornCard.getBoundingClientRect()
+        if (firstCard && deckArea) {
+          const cardRect = firstCard.getBoundingClientRect()
           const deckRect = deckArea.getBoundingClientRect()
           
           // Create a combined rect that includes both elements
@@ -74,7 +74,8 @@ export function Tutorial() {
         selector = '[data-tutorial-target="deck-collection"]'
         break
       case 'battle':
-        selector = '[data-tutorial-target="guardian-dungeon"]'
+        // Target the first dungeon instead of a specific one
+        selector = '.dungeon-list li:first-child'
         break
       case 'complete':
         setTargetRect(null)
@@ -134,6 +135,7 @@ export function Tutorial() {
 
   const stepContent = getStepContent()
   const isLastStep = currentStep === 'complete'
+  const canProceed = isStepComplete || isLastStep
 
   return (
     <div className="tutorial-overlay">
@@ -198,6 +200,7 @@ export function Tutorial() {
                   type="button"
                   className="tutorial-button tutorial-button-primary"
                   onClick={nextStep}
+                  disabled={!canProceed}
                 >
                   {t('tutorial.next')} →
                 </button>

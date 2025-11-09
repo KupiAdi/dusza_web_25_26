@@ -7,10 +7,12 @@ export type TutorialStep = 'session' | 'card' | 'battle' | 'complete'
 interface TutorialContextValue {
   isActive: boolean
   currentStep: TutorialStep
+  isStepComplete: boolean
   startTutorial: () => void
   nextStep: () => void
   skipTutorial: () => void
   completeTutorial: () => void
+  markStepComplete: () => void
 }
 
 const TutorialContext = createContext<TutorialContextValue | undefined>(undefined)
@@ -19,6 +21,7 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const [isActive, setIsActive] = useState(false)
   const [currentStep, setCurrentStep] = useState<TutorialStep>('session')
+  const [isStepComplete, setIsStepComplete] = useState(false)
 
   // Check if tutorial should be shown
   useEffect(() => {
@@ -26,17 +29,37 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
       // Auto-start tutorial for new users
       setIsActive(true)
       setCurrentStep('session')
+      setIsStepComplete(false)
     } else {
       setIsActive(false)
     }
   }, [user])
 
+  // Reset step completion when step changes
+  useEffect(() => {
+    setIsStepComplete(false)
+
+    // Auto-complete the final step
+    if (currentStep === 'complete') {
+      setIsStepComplete(true)
+    }
+  }, [currentStep])
+
   const startTutorial = () => {
     setIsActive(true)
     setCurrentStep('session')
+    setIsStepComplete(false)
+  }
+
+  const markStepComplete = () => {
+    setIsStepComplete(true)
   }
 
   const nextStep = () => {
+    if (!isStepComplete && currentStep !== 'complete') {
+      return
+    }
+
     switch (currentStep) {
       case 'session':
         setCurrentStep('card')
@@ -77,10 +100,12 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
       value={{
         isActive,
         currentStep,
+        isStepComplete,
         startTutorial,
         nextStep,
         skipTutorial,
         completeTutorial,
+        markStepComplete,
       }}
     >
       {children}

@@ -316,15 +316,15 @@ export const translations: Record<Language, TranslationDictionary> = {
       finish: 'Befejezés',
       step1: {
         title: 'Játékmenet létrehozása',
-        description: 'Hozz létre egy új játékmenetet a "Damareen: Az Első Korszak" játékban!',
+        description: 'Hozz létre egy új játékmenetet! Adj nevet és kattints a "Új játékmenet indítása" gombra.',
       },
       step2: {
         title: 'Kártya hozzáadása',
-        description: 'Rakd be az Aragorn kártyát a paklidba! (Húzd vagy kattints rá)',
+        description: 'Rakd be valamelyik kártyát a paklidba! (Húzd vagy kattints rá)',
       },
       step3: {
         title: 'Harc indítása',
-        description: 'Most indítsd el az első harcod az "Az Őrző Próbája" kazamatában!',
+        description: 'Most indítsd el az első harcod! Válassz egy kazamatát és kattints a "Harc indítása" gombra!',
       },
       step4: {
         title: 'Gratulálunk!',
@@ -632,15 +632,15 @@ export const translations: Record<Language, TranslationDictionary> = {
       finish: 'Finish',
       step1: {
         title: 'Create a session',
-        description: 'Create a new play session in "Damareen: Az Első Korszak" game!',
+        description: 'Create a new play session! Give it a name and click "Start new session" button.',
       },
       step2: {
         title: 'Add a card',
-        description: 'Add the Aragorn card to your deck! (Drag or click on it)',
+        description: 'Add any card to your deck! (Drag or click on it)',
       },
       step3: {
         title: 'Start a battle',
-        description: 'Now start your first battle in the "Az Őrző Próbája" dungeon!',
+        description: 'Now start your first battle! Choose a dungeon and click the "Start battle" button!',
       },
       step4: {
         title: 'Congratulations!',
@@ -904,9 +904,9 @@ export const translations: Record<Language, TranslationDictionary> = {
         decisiveStrike:
           '{{playerName}} landete einen entscheidenden Schlag, bevor {{dungeonName}} reagieren konnte.',
         playerDamageOverflow:
-          '{{playerName}} verursachte {{playerDamage}} Schaden und übertraf damit {{dungeonName}}s {{dungeonHealth}} Lebenspunkte.',
+          '{{playerName}} verursachte {{playerDamage}} Schaden és übertraf damit {{dungeonName}}s {{dungeonHealth}} Lebenspunkte.',
         dungeonDamageOverflow:
-          '{{dungeonName}} verursachte {{dungeonDamage}} Schaden und übertraf damit {{playerName}}s {{playerHealth}} Lebenspunkte.',
+          '{{dungeonName}} verursachte {{dungeonDamage}} Schaden és übertraf damit {{playerName}}s {{playerHealth}} Lebenspunkte.',
         playerElementAdvantage:
           '{{playerName}}s Element {{playerElementName}} besiegt {{dungeonName}}s Element {{dungeonElementName}}.',
         dungeonElementAdvantage:
@@ -948,15 +948,15 @@ export const translations: Record<Language, TranslationDictionary> = {
       finish: 'Fertig',
       step1: {
         title: 'Spielsitzung erstellen',
-        description: 'Erstelle eine neue Spielsitzung im Spiel "Damareen: Az Első Korszak"!',
+        description: 'Erstelle eine neue Spielsitzung! Gib einen Namen ein und klicke auf "Neue Sitzung starten".',
       },
       step2: {
         title: 'Karte hinzufügen',
-        description: 'Füge die Aragorn-Karte deinem Deck hinzu! (Ziehe oder klicke darauf)',
+        description: 'Füge eine beliebige Karte deinem Deck hinzu! (Ziehe oder klicke darauf)',
       },
       step3: {
         title: 'Kampf starten',
-        description: 'Starte jetzt deinen ersten Kampf im Dungeon "Az Őrző Próbája"!',
+        description: 'Starte jetzt deinen ersten Kampf! Wähle einen Dungeon und klicke auf "Kampf starten"!',
       },
       step4: {
         title: 'Glückwunsch!',

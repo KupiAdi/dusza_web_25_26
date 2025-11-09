@@ -74,9 +74,7 @@ class ApiService {
   async markTutorialCompleted() {
     return this.request<{ success: boolean; message: string }>(
       '/api/auth/tutorial',
-      {
-        method: 'PATCH',
-      }
+      { method: 'PATCH' }
     );
   }
 

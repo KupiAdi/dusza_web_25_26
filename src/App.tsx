@@ -382,8 +382,8 @@ function AppWithAuth() {
   return (
     <GameDataProvider>
       <TutorialProvider>
-        <AppShell />
         <Tutorial />
+        <AppShell />
       </TutorialProvider>
     </GameDataProvider>
   )
