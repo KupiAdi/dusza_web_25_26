@@ -524,8 +524,8 @@ export function PlayerHub({
         {message && <div className={`feedback feedback--${message.type}`}>{message.text}</div>}
 
       <div className="panel-block">
-        <h3>{t('player.sessions.title')}</h3>
         <div className="collapsible-section-header">
+          <h3>{t('player.sessions.title')}</h3>
           <button
             type="button"
             className="collapse-toggle"
