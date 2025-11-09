@@ -233,30 +233,63 @@ app.post('/api/environments', authMiddleware, async (req, res) => {
         'UPDATE environments SET name = ? WHERE id = ? AND user_id = ?',
         [name, id, req.user.userId]
       );
+    }
 
-      await connection.query('DELETE FROM world_cards WHERE environment_id = ?', [id]);
+    // Handle world cards - update existing, delete removed, insert new
+    const incomingCardIds = (worldCards || []).map(card => card.id);
+    
+    if (existing.length > 0) {
+      // Get existing card IDs
+      const [existingCards] = await connection.query(
+        'SELECT id FROM world_cards WHERE environment_id = ?',
+        [id]
+      );
+      const existingCardIds = existingCards.map(card => card.id);
+      
+      // Delete cards that are no longer in the incoming data
+      const cardsToDelete = existingCardIds.filter(cardId => !incomingCardIds.includes(cardId));
+      if (cardsToDelete.length > 0) {
+        const placeholders = cardsToDelete.map(() => '?').join(',');
+        await connection.query(
+          `DELETE FROM world_cards WHERE id IN (${placeholders}) AND environment_id = ?`,
+          [...cardsToDelete, id]
+        );
+      }
+      
+      // Delete all dungeons (they will be recreated)
       await connection.query('DELETE FROM dungeons WHERE environment_id = ?', [id]);
     }
 
+    // Insert or update world cards
     if (worldCards && worldCards.length > 0) {
-      const cardValues = worldCards.map(card => [
-        card.id,
-        id,
-        card.name,
-        card.damage,
-        card.health,
-        card.element,
-        card.kind,
-        card.sourceCardId || null,
-        card.backgroundImage || null
-      ]);
-
-      await connection.query(
-        'INSERT INTO world_cards (id, environment_id, name, damage, health, element, kind, source_card_id, background_image) VALUES ?',
-        [cardValues]
-      );
+      for (const card of worldCards) {
+        await connection.query(
+          `INSERT INTO world_cards (id, environment_id, name, damage, health, element, kind, source_card_id, background_image)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE
+           name = VALUES(name),
+           damage = VALUES(damage),
+           health = VALUES(health),
+           element = VALUES(element),
+           kind = VALUES(kind),
+           source_card_id = VALUES(source_card_id),
+           background_image = VALUES(background_image)`,
+          [
+            card.id,
+            id,
+            card.name,
+            card.damage,
+            card.health,
+            card.element,
+            card.kind,
+            card.sourceCardId || null,
+            card.backgroundImage || null
+          ]
+        );
+      }
     }
 
+    // Insert dungeons
     if (dungeons && dungeons.length > 0) {
       for (const dungeon of dungeons) {
         await connection.query(
