@@ -1,0 +1,203 @@
+.tutorial-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background-color: transparent;
+}
+
+.tutorial-spotlight-cutout {
+  position: fixed;
+  background-color: transparent;
+  box-shadow: none;
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 10000;
+  transition: all 0.3s ease;
+}
+
+.tutorial-spotlight-border {
+  position: fixed;
+  border: 3px solid var(--color-primary, #3b82f6);
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 10001;
+  animation: tutorial-pulse 2s ease-in-out infinite;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  transition: all 0.3s ease;
+}
+
+@keyframes tutorial-pulse {
+  0%, 100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+.tutorial-tooltip {
+  position: fixed;
+  max-width: 400px;
+  background: var(--color-bg-card, white);
+  border: 2px solid var(--color-primary, #3b82f6);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
+  z-index: 10002;
+  animation: tutorial-tooltip-appear 0.3s ease-out;
+}
+
+.tutorial-tooltip-center {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 500px;
+}
+
+@keyframes tutorial-tooltip-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tutorial-tooltip-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tutorial-tooltip-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-primary, #3b82f6);
+}
+
+.tutorial-tooltip-description {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--color-text, #333);
+}
+
+.tutorial-tooltip-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+.tutorial-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tutorial-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tutorial-button-primary {
+  background: var(--color-primary, #3b82f6);
+  color: white;
+}
+
+.tutorial-button-primary:hover:not(:disabled) {
+  background: var(--color-primary-dark, #2563eb);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+.tutorial-button-secondary {
+  background: transparent;
+  color: var(--color-text-muted, #666);
+  border: 1px solid var(--color-border, #ddd);
+}
+
+.tutorial-button-secondary:hover {
+  background: var(--color-bg-hover, #f5f5f5);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .tutorial-tooltip {
+    max-width: calc(100vw - 40px);
+    left: 20px !important;
+    right: 20px;
+    width: auto;
+  }
+
+  .tutorial-tooltip-center {
+    max-width: calc(100vw - 40px);
+  }
+
+  .tutorial-tooltip-title {
+    font-size: 1.1rem;
+  }
+
+  .tutorial-tooltip-description {
+    font-size: 0.9rem;
+  }
+
+  .tutorial-tooltip-actions {
+    flex-direction: column;
+  }
+
+  .tutorial-button {
+    width: 100%;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .tutorial-tooltip {
+    background: var(--color-bg-card-dark, #1f2937);
+    border-color: var(--color-primary, #3b82f6);
+  }
+
+  .tutorial-tooltip-description {
+    color: var(--color-text-dark, #e5e7eb);
+  }
+
+  .tutorial-button-secondary {
+    color: var(--color-text-muted-dark, #9ca3af);
+    border-color: var(--color-border-dark, #374151);
+  }
+
+  .tutorial-button-secondary:hover {
+    background: var(--color-bg-hover-dark, #374151);
+  }
+}
+
+[data-theme="dark"] .tutorial-tooltip {
+  background: var(--color-bg-card-dark, #1f2937);
+  border-color: var(--color-primary, #3b82f6);
+}
+
+[data-theme="dark"] .tutorial-tooltip-description {
+  color: var(--color-text-dark, #e5e7eb);
+}
+
+[data-theme="dark"] .tutorial-button-secondary {
+  color: var(--color-text-muted-dark, #9ca3af);
+  border-color: var(--color-border-dark, #374151);
+}
+
+[data-theme="dark"] .tutorial-button-secondary:hover {
+  background: var(--color-bg-hover-dark, #374151);
+}
+

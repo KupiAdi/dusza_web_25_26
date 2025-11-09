@@ -309,6 +309,28 @@ export const translations: Record<Language, TranslationDictionary> = {
     card: {
       deleteAria: 'Kártya törlése',
     },
+    tutorial: {
+      welcome: 'Üdvözlünk a Damareen-ben!',
+      skip: 'Tutorial kihagyása',
+      next: 'Következő',
+      finish: 'Befejezés',
+      step1: {
+        title: 'Játékmenet létrehozása',
+        description: 'Hozz létre egy új játékmenetet a "Damareen: Az Első Korszak" játékban!',
+      },
+      step2: {
+        title: 'Kártya hozzáadása',
+        description: 'Rakd be az Aragorn kártyát a paklidba! (Húzd vagy kattints rá)',
+      },
+      step3: {
+        title: 'Harc indítása',
+        description: 'Most indítsd el az első harcod az "Az Őrző Próbája" kazamatában!',
+      },
+      step4: {
+        title: 'Gratulálunk!',
+        description: 'Készen állsz a kalandokra! Most már tudod, hogyan használd a játékot.',
+      },
+    },
   },
   en: {
     common: {
@@ -603,6 +625,28 @@ export const translations: Record<Language, TranslationDictionary> = {
     card: {
       deleteAria: 'Delete card',
     },
+    tutorial: {
+      welcome: 'Welcome to Damareen!',
+      skip: 'Skip tutorial',
+      next: 'Next',
+      finish: 'Finish',
+      step1: {
+        title: 'Create a session',
+        description: 'Create a new play session in "Damareen: Az Első Korszak" game!',
+      },
+      step2: {
+        title: 'Add a card',
+        description: 'Add the Aragorn card to your deck! (Drag or click on it)',
+      },
+      step3: {
+        title: 'Start a battle',
+        description: 'Now start your first battle in the "Az Őrző Próbája" dungeon!',
+      },
+      step4: {
+        title: 'Congratulations!',
+        description: 'You\'re ready for adventure! Now you know how to use the game.',
+      },
+    },
   },
   de: {
     common: {
@@ -896,6 +940,28 @@ export const translations: Record<Language, TranslationDictionary> = {
     },
     card: {
       deleteAria: 'Karte löschen',
+    },
+    tutorial: {
+      welcome: 'Willkommen bei Damareen!',
+      skip: 'Tutorial überspringen',
+      next: 'Weiter',
+      finish: 'Fertig',
+      step1: {
+        title: 'Spielsitzung erstellen',
+        description: 'Erstelle eine neue Spielsitzung im Spiel "Damareen: Az Első Korszak"!',
+      },
+      step2: {
+        title: 'Karte hinzufügen',
+        description: 'Füge die Aragorn-Karte deinem Deck hinzu! (Ziehe oder klicke darauf)',
+      },
+      step3: {
+        title: 'Kampf starten',
+        description: 'Starte jetzt deinen ersten Kampf im Dungeon "Az Őrző Próbája"!',
+      },
+      step4: {
+        title: 'Glückwunsch!',
+        description: 'Du bist bereit für das Abenteuer! Jetzt weißt du, wie du das Spiel benutzt.',
+      },
     },
   },
 }

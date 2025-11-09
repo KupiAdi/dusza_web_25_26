@@ -2,7 +2,7 @@ import type { GameEnvironment } from '../types'
 
 export const defaultEnvironment: GameEnvironment = {
   id: 'damareen-core',
-  name: 'Damareen Alapkor',
+  name: 'Damareen: Az Első Korszak',
   worldCards: [
     {
       id: 'aragorn',
@@ -62,22 +62,22 @@ export const defaultEnvironment: GameEnvironment = {
   ],
   dungeons: [
     {
-      id: 'enc-embers',
-  name: 'Parazslo Tamas',
+      id: 'enc-guardian',
+      name: 'Az Őrző Próbája',
       type: 'encounter',
-      cardOrder: ['melian'],
+      cardOrder: ['aragorn'],
     },
     {
       id: 'minor-depths',
-  name: 'A Kristalysator',
+      name: 'A Kristalysator',
       type: 'minor',
       cardOrder: ['aragorn', 'melian', 'galadriel', 'darth-obiw'],
     },
     {
       id: 'major-queen',
-  name: 'A Melyseg Kiralynoje',
+      name: 'A Melyseg Kiralynoje',
       type: 'major',
-  cardOrder: ['durin', 'melian', 'galadriel', 'aragorn', 'eldarion', 'darth-obiw'],
+      cardOrder: ['durin', 'melian', 'galadriel', 'aragorn', 'eldarion', 'darth-obiw'],
     },
   ],
 }

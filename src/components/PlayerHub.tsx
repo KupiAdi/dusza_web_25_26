@@ -14,6 +14,7 @@ import { BattleScene } from './BattleScene'
 import { CardPreview } from './CardPreview'
 import { ConfirmDialog } from './ConfirmDialog'
 import { useTranslation } from '../state/LanguageContext'
+import { useTutorial } from '../state/TutorialContext'
 
 interface PlayerHubProps {
   environments: GameEnvironment[]
@@ -49,6 +50,7 @@ export function PlayerHub({
   defaultEnvironmentId,
 }: PlayerHubProps) {
   const { t } = useTranslation()
+  const { isActive: tutorialActive, currentStep, nextStep } = useTutorial()
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
   const [newGameName, setNewGameName] = useState('')
   const [deckDraft, setDeckDraft] = useState<DeckEntry[]>([])
@@ -423,6 +425,13 @@ export function PlayerHub({
       setNewGameName('')
       setSelectedPlayerId(profile.id)
       showMessage(t('player.messages.sessionCreated'))
+      
+      // Auto-advance tutorial to next step
+      if (tutorialActive && currentStep === 'session') {
+        setTimeout(() => {
+          nextStep()
+        }, 500)
+      }
     } catch (error: any) {
       console.error('Error creating play session:', error)
       showMessage(error.message || t('player.messages.sessionCreateFailed'), 'error')
@@ -553,6 +562,7 @@ export function PlayerHub({
               </p>
               <form
                 className="form-grid start-session__form"
+                data-tutorial-target="session-form"
                 onSubmit={(event) => {
                   event.preventDefault()
                   handleCreatePlayer()
@@ -611,6 +621,7 @@ export function PlayerHub({
                 <h5>{t('player.deck.availableCards')}</h5>
                 <div
                   className="card-grid card-grid--compact"
+                  data-tutorial-target="deck-collection"
                   onDragOver={handleCollectionDragOver}
                   onDrop={handleCollectionDrop}
                 >
@@ -622,10 +633,12 @@ export function PlayerHub({
                       return null
                     }
                     const disabled = deckDraft.some((entry) => entry.cardId === card.cardId)
+                    const isAragorn = worldCard.id === 'aragorn'
                     return (
                       <div
                         key={card.cardId}
                         className={`draggable-card ${disabled ? 'is-disabled' : ''} ${isMobileView ? 'mobile-clickable' : ''}`}
+                        data-tutorial-target={isAragorn ? 'aragorn-card' : undefined}
                         draggable={!disabled && !isMobileView}
                         onDragStart={(event) =>
                           handleCollectionDragStart(event, card.cardId, disabled)
@@ -651,6 +664,7 @@ export function PlayerHub({
                   className={`card-stack ${dropIndex !== null ? 'is-dragging' : ''} ${
                     isDeckSurfaceTarget ? 'is-drop-target' : ''
                   }`}
+                  data-tutorial-target="deck-area"
                   onDragOver={handleDeckSurfaceDragOver}
                   onDrop={handleDeckSurfaceDrop}
                   onDragLeave={handleDeckSurfaceDragLeave}
@@ -723,24 +737,27 @@ export function PlayerHub({
           <section className="sub-panel">
             <h4>{t('player.dungeons.title')}</h4>
             <ul className="dungeon-list">
-              {playerEnvironment.dungeons.map((dungeon) => (
-                <li key={dungeon.id}>
-                  <div>
-                    <strong>{dungeon.name}</strong> - {t(`environment.dungeon.type.${dungeon.type}`)}{' '}
-                    {t('player.dungeons.cardRequirement', { count: getDeckRequirement(dungeon) })}
-                    <div className="card-sequence">
-                      {dungeon.cardOrder.map((cardId) => (
-                        <span key={cardId}>
-                          {playerEnvironment.worldCards.find((card) => card.id === cardId)?.name ?? cardId}
-                        </span>
-                      ))}
+              {playerEnvironment.dungeons.map((dungeon) => {
+                const isGuardianDungeon = dungeon.id === 'enc-guardian'
+                return (
+                  <li key={dungeon.id} data-tutorial-target={isGuardianDungeon ? 'guardian-dungeon' : undefined}>
+                    <div>
+                      <strong>{dungeon.name}</strong> - {t(`environment.dungeon.type.${dungeon.type}`)}{' '}
+                      {t('player.dungeons.cardRequirement', { count: getDeckRequirement(dungeon) })}
+                      <div className="card-sequence">
+                        {dungeon.cardOrder.map((cardId) => (
+                          <span key={cardId}>
+                            {playerEnvironment.worldCards.find((card) => card.id === cardId)?.name ?? cardId}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                  <button type="button" onClick={() => runFight(dungeon)}>
-                    {t('player.dungeons.startBattle')}
-                  </button>
-                </li>
-              ))}
+                    <button type="button" onClick={() => runFight(dungeon)}>
+                      {t('player.dungeons.startBattle')}
+                    </button>
+                  </li>
+                )
+              })}
             </ul>
           </section>
 

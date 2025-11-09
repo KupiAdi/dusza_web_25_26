@@ -5,6 +5,7 @@ interface User {
   id: number;
   username: string;
   email: string;
+  tutorialCompleted: boolean;
 }
 
 interface AuthContextValue {

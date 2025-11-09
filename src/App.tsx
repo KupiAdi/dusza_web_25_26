@@ -10,6 +10,8 @@ import { GameDataProvider, useGameData } from './state/GameDataContext'
 import { AuthProvider, useAuth } from './state/AuthContext'
 import { LanguageProvider, useTranslation } from './state/LanguageContext'
 import { ThemeProvider } from './state/ThemeContext'
+import { TutorialProvider } from './state/TutorialContext'
+import { Tutorial } from './components/Tutorial'
 import type { GameEnvironment } from './types'
 import { generateId } from './utils/id'
 
@@ -379,7 +381,10 @@ function AppWithAuth() {
 
   return (
     <GameDataProvider>
-      <AppShell />
+      <TutorialProvider>
+        <AppShell />
+        <Tutorial />
+      </TutorialProvider>
     </GameDataProvider>
   )
 }

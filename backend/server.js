@@ -63,7 +63,7 @@ app.post('/api/auth/register', async (req, res) => {
     res.json({
       success: true,
       token,
-      user: { id: userId, username, email }
+      user: { id: userId, username, email, tutorialCompleted: false }
     });
   } catch (error) {
     console.error('Register error:', error);
@@ -80,7 +80,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     const [users] = await db.query(
-      'SELECT id, username, email, password_hash FROM users WHERE username = ?',
+      'SELECT id, username, email, password_hash, tutorial_completed as tutorialCompleted FROM users WHERE username = ?',
       [username]
     );
 
@@ -101,7 +101,7 @@ app.post('/api/auth/login', async (req, res) => {
     res.json({
       success: true,
       token,
-      user: { id: user.id, username: user.username, email: user.email }
+      user: { id: user.id, username: user.username, email: user.email, tutorialCompleted: user.tutorialCompleted }
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -112,7 +112,7 @@ app.post('/api/auth/login', async (req, res) => {
 app.get('/api/auth/me', authMiddleware, async (req, res) => {
   try {
     const [users] = await db.query(
-      'SELECT id, username, email FROM users WHERE id = ?',
+      'SELECT id, username, email, tutorial_completed as tutorialCompleted FROM users WHERE id = ?',
       [req.user.userId]
     );
 
@@ -124,6 +124,20 @@ app.get('/api/auth/me', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('Get user error:', error);
     res.status(500).json({ error: 'Hiba a felhasználó lekérdezése során' });
+  }
+});
+
+app.patch('/api/auth/tutorial', authMiddleware, async (req, res) => {
+  try {
+    await db.query(
+      'UPDATE users SET tutorial_completed = TRUE WHERE id = ?',
+      [req.user.userId]
+    );
+
+    res.json({ success: true, message: 'Tutorial befejezve' });
+  } catch (error) {
+    console.error('Mark tutorial completed error:', error);
+    res.status(500).json({ error: 'Hiba a tutorial státusz mentése során' });
   }
 });
 

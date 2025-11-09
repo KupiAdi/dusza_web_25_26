@@ -71,6 +71,15 @@ class ApiService {
     return this.request<{ user: any }>('/api/auth/me');
   }
 
+  async markTutorialCompleted() {
+    return this.request<{ success: boolean; message: string }>(
+      '/api/auth/tutorial',
+      {
+        method: 'PATCH',
+      }
+    );
+  }
+
   // Environment endpoints
   async getEnvironments() {
     return this.request<{ environments: any[] }>('/api/environments');
