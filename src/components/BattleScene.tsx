@@ -20,7 +20,11 @@ export function BattleScene({ result, environment, playerCards, onComplete, onRe
   const [phase, setPhase] = useState<AnimationPhase>('intro')
   const [playerScore, setPlayerScore] = useState(0)
   const [dungeonScore, setDungeonScore] = useState(0)
-  const [isMuted, setIsMuted] = useState(false)
+  const [isMuted, setIsMuted] = useState(() => {
+    // Load mute state from localStorage
+    const saved = localStorage.getItem('battleMusicMuted')
+    return saved ? JSON.parse(saved) : false
+  })
   const { t } = useTranslation()
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
@@ -63,6 +67,11 @@ export function BattleScene({ result, environment, playerCards, onComplete, onRe
     if (audioRef.current) {
       audioRef.current.volume = isMuted ? 0 : 0.1
     }
+  }, [isMuted])
+
+  // Save mute state to localStorage
+  useEffect(() => {
+    localStorage.setItem('battleMusicMuted', JSON.stringify(isMuted))
   }, [isMuted])
 
   const toggleMute = () => {
