@@ -173,18 +173,18 @@ function AppShell() {
           <p>{t('app.subtitle')}</p>
         </div>
         <div className="app-header__controls">
-          <div className="app-header__selectors">
-            <ThemeSelector size="small" />
-            <LanguageSelector size="small" />
-          </div>
-          <div className="app-header__user">
-            <span className="app-header__greeting">{greetingText}</span>
+          <span className="app-header__greeting">{greetingText}</span>
+          <div className="app-header__actions">
+            <ThemeSelector />
+            <LanguageSelector />
             <button
               type="button"
               onClick={logout}
-              className="app-header__logout"
+              className="icon-button"
+              aria-label={t('common.logout')}
+              title={t('common.logout')}
             >
-              {t('common.logout')}
+              <span className="icon-button-icon">🚪</span>
             </button>
           </div>
         </div>

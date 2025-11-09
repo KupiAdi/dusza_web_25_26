@@ -53,7 +53,7 @@ export const translations: Record<Language, TranslationDictionary> = {
     },
     app: {
       title: 'Damareen',
-      subtitle: 'Gyűjtögetős fantasy kártyakaland React alapokon.',
+      subtitle: 'Gyűjtögetős fantasy kártyajáték kalandokkal.',
       subtitleShort: 'Gyűjtögetős fantasy kártya kaland',
       greeting: 'Üdv, {{name}}!',
       tabs: {
@@ -369,7 +369,7 @@ export const translations: Record<Language, TranslationDictionary> = {
     },
     app: {
       title: 'Damareen',
-      subtitle: 'Collectible fantasy card adventure built with React.',
+      subtitle: 'Collectible fantasy card game with adventures.',
       subtitleShort: 'Collectible fantasy card adventure',
       greeting: 'Welcome, {{name}}!',
       tabs: {
@@ -685,7 +685,7 @@ export const translations: Record<Language, TranslationDictionary> = {
     },
     app: {
       title: 'Damareen',
-      subtitle: 'Sammelbares Fantasy-Kartenabenteuer auf React-Basis.',
+      subtitle: 'Sammelbares Fantasy-Kartenspiel mit Abenteuern.',
       subtitleShort: 'Sammelbares Fantasy-Kartenabenteuer',
       greeting: 'Willkommen, {{name}}!',
       tabs: {
