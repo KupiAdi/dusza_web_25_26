@@ -99,7 +99,7 @@ export function Auth() {
           }}
         >
           <h1>{t('auth.title')}</h1>
-          <LanguageSelector size="small" />
+          <LanguageSelector />
         </div>
         <p className="auth-subtitle">{t('auth.subtitle')}</p>
 
